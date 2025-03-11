@@ -308,61 +308,68 @@ border-radius:10px;</string>
           <property name="frameShadow">
            <enum>QFrame::Raised</enum>
           </property>
-          <layout class="QVBoxLayout" name="verticalLayout_2">
-           <item>
-            <widget class="QLabel" name="label_4">
-             <property name="font">
-              <font>
-               <family>MS Shell Dlg 2</family>
-               <pointsize>9</pointsize>
-               <weight>50</weight>
-               <italic>false</italic>
-               <bold>false</bold>
-              </font>
-             </property>
-             <property name="styleSheet">
-              <string notr="true">
+          <widget class="QLabel" name="label_8">
+           <property name="geometry">
+            <rect>
+             <x>13</x>
+             <y>60</y>
+             <width>55</width>
+             <height>22</height>
+            </rect>
+           </property>
+           <property name="maximumSize">
+            <size>
+             <width>16777215</width>
+             <height>50</height>
+            </size>
+           </property>
+           <property name="font">
+            <font>
+             <family>MS Shell Dlg 2</family>
+             <pointsize>9</pointsize>
+             <weight>50</weight>
+             <italic>false</italic>
+             <bold>false</bold>
+            </font>
+           </property>
+           <property name="styleSheet">
+            <string notr="true">
 border : 2px solid rgb(221, 221, 221); </string>
-             </property>
-            </widget>
-           </item>
-           <item>
-            <widget class="QLabel" name="label_8">
-             <property name="font">
-              <font>
-               <family>MS Shell Dlg 2</family>
-               <pointsize>9</pointsize>
-               <weight>50</weight>
-               <italic>false</italic>
-               <bold>false</bold>
-              </font>
-             </property>
-             <property name="styleSheet">
-              <string notr="true">
+           </property>
+           <property name="text">
+            <string>T_Low</string>
+           </property>
+          </widget>
+          <widget class="QFrame" name="frame_12">
+           <property name="geometry">
+            <rect>
+             <x>13</x>
+             <y>100</y>
+             <width>324</width>
+             <height>50</height>
+            </rect>
+           </property>
+           <property name="maximumSize">
+            <size>
+             <width>16777215</width>
+             <height>50</height>
+            </size>
+           </property>
+           <property name="styleSheet">
+            <string notr="true">
 border : 2px solid rgb(221, 221, 221); </string>
-             </property>
-             <property name="text">
-              <string>T_Low</string>
-             </property>
-            </widget>
-           </item>
-           <item>
-            <widget class="QFrame" name="frame_12">
-             <property name="styleSheet">
-              <string notr="true">
-border : 2px solid rgb(221, 221, 221); </string>
-             </property>
-             <property name="frameShape">
-              <enum>QFrame::StyledPanel</enum>
-             </property>
-             <property name="frameShadow">
-              <enum>QFrame::Raised</enum>
-             </property>
-             <layout class="QHBoxLayout" name="horizontalLayout_5">
-              <item>
-               <widget class="QSlider" name="kernel_slider">
-                <property name="styleSheet">
-                 <string notr="true">QSlider::groove:horizontal {
+           </property>
+           <property name="frameShape">
+            <enum>QFrame::StyledPanel</enum>
+           </property>
+           <property name="frameShadow">
+            <enum>QFrame::Raised</enum>
+           </property>
+           <layout class="QHBoxLayout" name="horizontalLayout_5">
+            <item>
+             <widget class="QSlider" name="kernel_slider">
+              <property name="styleSheet">
+               <string notr="true">QSlider::groove:horizontal {
     border: 1px solid #999999; /* Light border */
     height: 2px;  /* Slim and modern */
     background: #D1D5DB; /* Light gray track */
@@ -392,86 +399,110 @@ QSlider::handle:horizontal:hover {
     border-color: #0F2499;
 }
 </string>
-                </property>
-                <property name="minimum">
-                 <number>0</number>
-                </property>
-                <property name="maximum">
-                 <number>6</number>
-                </property>
-                <property name="singleStep">
-                 <number>1</number>
-                </property>
-                <property name="value">
-                 <number>1</number>
-                </property>
-                <property name="sliderPosition">
-                 <number>1</number>
-                </property>
-                <property name="orientation">
-                 <enum>Qt::Horizontal</enum>
-                </property>
-               </widget>
-              </item>
-              <item alignment="Qt::AlignHCenter|Qt::AlignVCenter">
-               <widget class="QLabel" name="kernel_label">
-                <property name="minimumSize">
-                 <size>
-                  <width>30</width>
-                  <height>30</height>
-                 </size>
-                </property>
-                <property name="styleSheet">
-                 <string notr="true">background-color: #4264EC;
+              </property>
+              <property name="minimum">
+               <number>0</number>
+              </property>
+              <property name="maximum">
+               <number>6</number>
+              </property>
+              <property name="singleStep">
+               <number>1</number>
+              </property>
+              <property name="value">
+               <number>1</number>
+              </property>
+              <property name="sliderPosition">
+               <number>1</number>
+              </property>
+              <property name="orientation">
+               <enum>Qt::Horizontal</enum>
+              </property>
+             </widget>
+            </item>
+            <item alignment="Qt::AlignHCenter|Qt::AlignVCenter">
+             <widget class="QLabel" name="kernel_label">
+              <property name="minimumSize">
+               <size>
+                <width>30</width>
+                <height>30</height>
+               </size>
+              </property>
+              <property name="styleSheet">
+               <string notr="true">background-color: #4264EC;
 border-radius: 5px;
 color:white;
 padding-left:5px;</string>
-                </property>
-                <property name="text">
-                 <string>0.0625</string>
-                </property>
-               </widget>
-              </item>
-             </layout>
-            </widget>
-           </item>
-           <item>
-            <widget class="QLabel" name="label_19">
-             <property name="font">
-              <font>
-               <family>MS Shell Dlg 2</family>
-               <pointsize>9</pointsize>
-               <weight>50</weight>
-               <italic>false</italic>
-               <bold>false</bold>
-              </font>
-             </property>
-             <property name="styleSheet">
-              <string notr="true">
+              </property>
+              <property name="text">
+               <string>0.0625</string>
+              </property>
+             </widget>
+            </item>
+           </layout>
+          </widget>
+          <widget class="QLabel" name="label_19">
+           <property name="geometry">
+            <rect>
+             <x>13</x>
+             <y>268</y>
+             <width>51</width>
+             <height>22</height>
+            </rect>
+           </property>
+           <property name="maximumSize">
+            <size>
+             <width>16777215</width>
+             <height>50</height>
+            </size>
+           </property>
+           <property name="font">
+            <font>
+             <family>MS Shell Dlg 2</family>
+             <pointsize>9</pointsize>
+             <weight>50</weight>
+             <italic>false</italic>
+             <bold>false</bold>
+            </font>
+           </property>
+           <property name="styleSheet">
+            <string notr="true">
 border : 2px solid rgb(221, 221, 221); </string>
-             </property>
-             <property name="text">
-              <string>Sigma</string>
-             </property>
-            </widget>
-           </item>
-           <item>
-            <widget class="QFrame" name="frame_13">
-             <property name="styleSheet">
-              <string notr="true">
+           </property>
+           <property name="text">
+            <string>Sigma</string>
+           </property>
+          </widget>
+          <widget class="QFrame" name="frame_13">
+           <property name="geometry">
+            <rect>
+             <x>13</x>
+             <y>300</y>
+             <width>324</width>
+             <height>50</height>
+            </rect>
+           </property>
+           <property name="maximumSize">
+            <size>
+             <width>16777215</width>
+             <height>50</height>
+            </size>
+           </property>
+           <property name="styleSheet">
+            <string notr="true">
 border : 2px solid rgb(221, 221, 221); </string>
-             </property>
-             <property name="frameShape">
-              <enum>QFrame::StyledPanel</enum>
-             </property>
-             <property name="frameShadow">
-              <enum>QFrame::Raised</enum>
-             </property>
-             <layout class="QHBoxLayout" name="horizontalLayout_6">
-              <item>
-               <widget class="QSlider" name="sigma_slider">
-                <property name="styleSheet">
-                 <string notr="true">QSlider::groove:horizontal {
+           </property>
+           <property name="frameShape">
+            <enum>QFrame::StyledPanel</enum>
+           </property>
+           <property name="frameShadow">
+            <enum>QFrame::Raised</enum>
+           </property>
+           <layout class="QHBoxLayout" name="horizontalLayout_6">
+            <item>
+             <widget class="QSlider" name="sigma_slider">
+              <property name="styleSheet">
+               <string notr="true">QSlider::groove:horizontal {
     border: 1px solid #999999; /* Light border */
     height: 2px;  /* Slim and modern */
     background: #D1D5DB; /* Light gray track */
@@ -501,80 +532,104 @@ QSlider::handle:horizontal:hover {
     border-color: #0F2499;
 }
 </string>
-                </property>
-                <property name="minimum">
-                 <number>1</number>
-                </property>
-                <property name="maximum">
-                 <number>15</number>
-                </property>
-                <property name="sliderPosition">
-                 <number>1</number>
-                </property>
-                <property name="orientation">
-                 <enum>Qt::Horizontal</enum>
-                </property>
-               </widget>
-              </item>
-              <item>
-               <widget class="QLabel" name="sigma_label">
-                <property name="minimumSize">
-                 <size>
-                  <width>30</width>
-                  <height>30</height>
-                 </size>
-                </property>
-                <property name="styleSheet">
-                 <string notr="true">background-color: #4264EC;
+              </property>
+              <property name="minimum">
+               <number>1</number>
+              </property>
+              <property name="maximum">
+               <number>15</number>
+              </property>
+              <property name="sliderPosition">
+               <number>1</number>
+              </property>
+              <property name="orientation">
+               <enum>Qt::Horizontal</enum>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QLabel" name="sigma_label">
+              <property name="minimumSize">
+               <size>
+                <width>30</width>
+                <height>30</height>
+               </size>
+              </property>
+              <property name="styleSheet">
+               <string notr="true">background-color: #4264EC;
 border-radius: 5px;
 color:white;
 padding-left:5px;</string>
-                </property>
-                <property name="text">
-                 <string>1</string>
-                </property>
-               </widget>
-              </item>
-             </layout>
-            </widget>
-           </item>
-           <item>
-            <widget class="QLabel" name="label_21">
-             <property name="font">
-              <font>
-               <family>MS Shell Dlg 2</family>
-               <pointsize>9</pointsize>
-               <weight>50</weight>
-               <italic>false</italic>
-               <bold>false</bold>
-              </font>
-             </property>
-             <property name="styleSheet">
-              <string notr="true">
+              </property>
+              <property name="text">
+               <string>1</string>
+              </property>
+             </widget>
+            </item>
+           </layout>
+          </widget>
+          <widget class="QLabel" name="label_21">
+           <property name="geometry">
+            <rect>
+             <x>13</x>
+             <y>476</y>
+             <width>58</width>
+             <height>22</height>
+            </rect>
+           </property>
+           <property name="maximumSize">
+            <size>
+             <width>16777215</width>
+             <height>50</height>
+            </size>
+           </property>
+           <property name="font">
+            <font>
+             <family>MS Shell Dlg 2</family>
+             <pointsize>9</pointsize>
+             <weight>50</weight>
+             <italic>false</italic>
+             <bold>false</bold>
+            </font>
+           </property>
+           <property name="styleSheet">
+            <string notr="true">
 border : 2px solid rgb(221, 221, 221); </string>
-             </property>
-             <property name="text">
-              <string>T_High</string>
-             </property>
-            </widget>
-           </item>
-           <item>
-            <widget class="QFrame" name="frame_14">
-             <property name="styleSheet">
-              <string notr="true">
+           </property>
+           <property name="text">
+            <string>T_High</string>
+           </property>
+          </widget>
+          <widget class="QFrame" name="frame_14">
+           <property name="geometry">
+            <rect>
+             <x>13</x>
+             <y>510</y>
+             <width>324</width>
+             <height>50</height>
+            </rect>
+           </property>
+           <property name="maximumSize">
+            <size>
+             <width>16777215</width>
+             <height>50</height>
+            </size>
+           </property>
+           <property name="styleSheet">
+            <string notr="true">
 border : 2px solid rgb(221, 221, 221); </string>
-             </property>
-             <property name="frameShape">
-              <enum>QFrame::StyledPanel</enum>
-             </property>
-             <property name="frameShadow">
-              <enum>QFrame::Raised</enum>
-             </property>
-             <layout class="QHBoxLayout" name="horizontalLayout_7">
-              <item>
-               <widget class="QSlider" name="mean_slider">
-                <property name="styleSheet">
-                 <string notr="true">QSlider::groove:horizontal {
+           </property>
+           <property name="frameShape">
+            <enum>QFrame::StyledPanel</enum>
+           </property>
+           <property name="frameShadow">
+            <enum>QFrame::Raised</enum>
+           </property>
+           <layout class="QHBoxLayout" name="horizontalLayout_7">
+            <item>
+             <widget class="QSlider" name="mean_slider">
+              <property name="styleSheet">
+               <string notr="true">QSlider::groove:horizontal {
     border: 1px solid #999999; /* Light border */
     height: 2px;  /* Slim and modern */
     background: #D1D5DB; /* Light gray track */
@@ -604,44 +659,48 @@ QSlider::handle:horizontal:hover {
     border-color: #0F2499;
 }
 </string>
-                </property>
-                <property name="minimum">
-                 <number>1</number>
-                </property>
-                <property name="value">
-                 <number>1</number>
-                </property>
-                <property name="orientation">
-                 <enum>Qt::Horizontal</enum>
-                </property>
-                <property name="tickPosition">
-                 <enum>QSlider::NoTicks</enum>
-                </property>
-               </widget>
-              </item>
-              <item>
-               <widget class="QLabel" name="mean_label">
-                <property name="minimumSize">
-                 <size>
-                  <width>30</width>
-                  <height>30</height>
-                 </size>
-                </property>
-                <property name="styleSheet">
-                 <string notr="true">background-color: #4264EC;
+              </property>
+              <property name="minimum">
+               <number>1</number>
+              </property>
+              <property name="value">
+               <number>1</number>
+              </property>
+              <property name="orientation">
+               <enum>Qt::Horizontal</enum>
+              </property>
+              <property name="tickPosition">
+               <enum>QSlider::NoTicks</enum>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QLabel" name="mean_label">
+              <property name="minimumSize">
+               <size>
+                <width>30</width>
+                <height>30</height>
+               </size>
+              </property>
+              <property name="maximumSize">
+               <size>
+                <width>100</width>
+                <height>50</height>
+               </size>
+              </property>
+              <property name="styleSheet">
+               <string notr="true">background-color: #4264EC;
 border-radius: 5px;
 color:white;
 padding-left:5px;</string>
-                </property>
-                <property name="text">
-                 <string>0.1563</string>
-                </property>
-               </widget>
-              </item>
-             </layout>
-            </widget>
-           </item>
-          </layout>
+              </property>
+              <property name="text">
+               <string>0.1563</string>
+              </property>
+             </widget>
+            </item>
+           </layout>
+          </widget>
          </widget>
         </item>
         <item row="2" column="1">
@@ -758,7 +817,7 @@ border : 2px solid #D1D5DB; </string>
           <property name="minimumSize">
            <size>
             <width>1000</width>
-            <height>0</height>
+            <height>800</height>
            </size>
           </property>
           <property name="maximumSize">
@@ -1082,9 +1141,6 @@ font: 75 9pt &quot;MS Shell Dlg 2&quot;;</string>
                    <property name="text">
                     <string>Lines</string>
                    </property>
-                   <property name="checked">
-                    <bool>true</bool>
-                   </property>
                   </widget>
                  </item>
                  <item>
@@ -1133,7 +1189,7 @@ font: 75 9pt &quot;MS Shell Dlg 2&quot;;
                    <property name="maximumSize">
                     <size>
                      <width>16777215</width>
-                     <height>16777215</height>
+                     <height>50</height>
                     </size>
                    </property>
                    <property name="styleSheet">
@@ -1250,6 +1306,12 @@ font: 75 9pt &quot;MS Shell Dlg 2&quot;;</string>
                  </item>
                  <item>
                   <widget class="QFrame" name="frame_46">
+                   <property name="maximumSize">
+                    <size>
+                     <width>16777215</width>
+                     <height>50</height>
+                    </size>
+                   </property>
                    <property name="styleSheet">
                     <string notr="true"/>
                    </property>
@@ -1365,6 +1427,12 @@ font: 75 9pt &quot;MS Shell Dlg 2&quot;;
                  </item>
                  <item>
                   <widget class="QFrame" name="frame_47">
+                   <property name="maximumSize">
+                    <size>
+                     <width>16777215</width>
+                     <height>50</height>
+                    </size>
+                   </property>
                    <property name="styleSheet">
                     <string notr="true"/>
                    </property>
@@ -1930,6 +1998,12 @@ font: 75 9pt &quot;MS Shell Dlg 2&quot;;</string>
                  </item>
                  <item>
                   <widget class="QFrame" name="frame_26">
+                   <property name="maximumSize">
+                    <size>
+                     <width>16777215</width>
+                     <height>50</height>
+                    </size>
+                   </property>
                    <property name="styleSheet">
                     <string notr="true"/>
                    </property>
@@ -2045,6 +2119,12 @@ font: 75 9pt &quot;MS Shell Dlg 2&quot;;
                  </item>
                  <item>
                   <widget class="QFrame" name="frame_27">
+                   <property name="maximumSize">
+                    <size>
+                     <width>16777215</width>
+                     <height>50</height>
+                    </size>
+                   </property>
                    <property name="styleSheet">
                     <string notr="true"/>
                    </property>
@@ -2159,6 +2239,12 @@ font: 75 9pt &quot;MS Shell Dlg 2&quot;;</string>
                  </item>
                  <item>
                   <widget class="QFrame" name="frame_28">
+                   <property name="maximumSize">
+                    <size>
+                     <width>16777215</width>
+                     <height>50</height>
+                    </size>
+                   </property>
                    <property name="styleSheet">
                     <string notr="true"/>
                    </property>
@@ -2274,6 +2360,12 @@ font: 75 9pt &quot;MS Shell Dlg 2&quot;;
                  </item>
                  <item>
                   <widget class="QFrame" name="frame_33">
+                   <property name="maximumSize">
+                    <size>
+                     <width>16777215</width>
+                     <height>50</height>
+                    </size>
+                   </property>
                    <property name="styleSheet">
                     <string notr="true"/>
                    </property>

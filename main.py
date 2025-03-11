@@ -38,6 +38,7 @@ class MainApp(QtWidgets.QMainWindow, ui):
         # Initializing Buttons 
         self.filterUpload_button.clicked.connect(lambda: self.uploadImage(1))
         self.filterDownload_button.clicked.connect(self.downloadImage)
+        
 
         # Initializing Sliders
         self.kernel_slider.sliderReleased.connect(self.handleFilter)
