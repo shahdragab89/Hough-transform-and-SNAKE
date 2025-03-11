@@ -38,7 +38,7 @@ class MainApp(QtWidgets.QMainWindow, ui):
         # Initializing Buttons 
         self.filterUpload_button.clicked.connect(lambda: self.uploadImage(1))
         self.filterDownload_button.clicked.connect(self.downloadImage)
-        
+        self.houghUpload_button.clicked.connect(lambda: self.uploadImage(2))
 
         # Initializing Sliders
         self.kernel_slider.sliderReleased.connect(self.handleFilter)
@@ -105,6 +105,11 @@ class MainApp(QtWidgets.QMainWindow, ui):
                     self.filtered_image.setPixmap(QPixmap.fromImage(q_image))
 
                 case 2:
+                    q_image, self.image = self.process_and_store_grayscale(file_path)  
+                    self.inputImage_hough.setPixmap(QPixmap.fromImage(q_image))
+                    self.resultImage_hough.setPixmap(QPixmap.fromImage(q_image))
+                
+                case 3:
                     return
 
 
