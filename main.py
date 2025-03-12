@@ -137,6 +137,10 @@ class MainApp(QtWidgets.QMainWindow, ui):
             # Set scaled contents for each QLabel only once
             self.original_image.setScaledContents(True)
             self.filtered_image.setScaledContents(True)
+            self.inputImage_hough.setScaledContents(True)
+            self.resultImage_hough.setScaledContents(True)
+            self.inputImage_snake.setScaledContents(True)
+
 
 
                             
@@ -222,6 +226,7 @@ class MainApp(QtWidgets.QMainWindow, ui):
         height, width = grayscale_array.shape
         bytes_per_line = width
         q_image = QImage(grayscale_array.data, width, height, bytes_per_line, QImage.Format_Grayscale8)
+        
 
         return q_image, grayscale_array 
 
@@ -270,6 +275,8 @@ class MainApp(QtWidgets.QMainWindow, ui):
         self.worker.clear()
         self.inputImage_hough.setPixmap(QPixmap.fromImage(self.q_image))
         self.resultImage_hough.setPixmap(QPixmap.fromImage(self.q_image))
+
+    
 
 if __name__ == "__main__":
     app = QtWidgets.QApplication(sys.argv)

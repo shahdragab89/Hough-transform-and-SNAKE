@@ -69,7 +69,7 @@ QTabBar::tab:!selected {
 </string>
       </property>
       <property name="currentIndex">
-       <number>0</number>
+       <number>2</number>
       </property>
       <widget class="QWidget" name="tab">
        <attribute name="title">
@@ -2660,7 +2660,7 @@ font-size: 14px;</string>
                      </widget>
                     </item>
                     <item>
-                     <widget class="QLabel" name="contour_points_label_2">
+                     <widget class="QLabel" name="area_label">
                       <property name="sizePolicy">
                        <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
                         <horstretch>0</horstretch>
@@ -2711,12 +2711,12 @@ font-weight: bold;
 font-size: 14px;</string>
                       </property>
                       <property name="text">
-                       <string>Parametres</string>
+                       <string>Perimeter</string>
                       </property>
                      </widget>
                     </item>
                     <item>
-                     <widget class="QLabel" name="contour_points_label_3">
+                     <widget class="QLabel" name="perimeter_label">
                       <property name="sizePolicy">
                        <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
                         <horstretch>0</horstretch>
