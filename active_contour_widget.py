@@ -51,6 +51,10 @@ class ActiveContourWidget:
         self.image = image
         self.compute_edge_map()
         self.draw_initial_contour()
+        self.ui.resultImage_snake.clear()
+        self.ui.area_label.setText("0")
+        self.ui.perimeter_label.setText("0")
+
 
     def compute_edge_map(self):
         """ Compute gradient magnitude as an edge strength map. """
@@ -97,9 +101,9 @@ class ActiveContourWidget:
             return
         
         for _ in range(self.iterations):
-            self.update_internal_energy_weights()
             self.contour = self.update_contour(self.contour)
             self.display_result_image()
+            self.calculate_area_perimeter()
     
     def update_contour(self, contour):
         """ Updates the contour by minimizing energy. """
@@ -138,23 +142,6 @@ class ActiveContourWidget:
             new_contour[i] = best_point
         return new_contour
 
-    def update_internal_energy_weights(self):
-        """ Dynamically adjusts elasticity and smoothness based on edge proximity. """
-        avg_edge_strength = np.mean([self.get_pixel_intensity(pt) for pt in self.contour])
-
-        if avg_edge_strength < 0.2:
-            self.alpha = min(self.alpha + 0.1, 2.0)
-            self.beta = max(self.beta - 0.1, 0.5)
-        elif avg_edge_strength > 0.5:
-            self.alpha = max(self.alpha - 0.1, 0.5)
-            self.beta = min(self.beta + 0.1, 2.0)
-
-        self.ui.alpha_slider.setValue(int(self.alpha * 10))
-        self.ui.beta_slider.setValue(int(self.beta * 10))
-        self.ui.alpha_label.setText(f"{self.alpha:.1f}")
-        self.ui.beta_label.setText(f"{self.beta:.1f}")
-
-
     def get_pixel_intensity(self, point):
         """ Returns edge strength from the computed edge map. """
         x, y = point
@@ -175,6 +162,20 @@ class ActiveContourWidget:
         q_image = self.numpy_to_qimage(result_image)
         self.ui.resultImage_snake.setPixmap(QPixmap.fromImage(q_image))
         self.ui.resultImage_snake.setScaledContents(True)
+
+
+    def calculate_area_perimeter(self):
+        x = self.contour[:, 0]
+        y = self.contour[:, 1]
+        
+        # Compute perimeter using Euclidean distance
+        perimeter = np.sum(np.sqrt(np.diff(x, append=x[0])**2 + np.diff(y, append=y[0])**2))
+        
+        # Compute area using Shoelace formula
+        area = 0.5 * np.abs(np.dot(x, np.roll(y, 1)) - np.dot(y, np.roll(x, 1)))
+        
+        self.ui.area_label.setText(f"{area:.2f}")
+        self.ui.perimeter_label.setText(f"{perimeter:.2f}")
 
     
     def update_radius(self, value):
