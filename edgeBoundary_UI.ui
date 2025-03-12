@@ -69,7 +69,7 @@ QTabBar::tab:!selected {
 </string>
       </property>
       <property name="currentIndex">
-       <number>1</number>
+       <number>0</number>
       </property>
       <widget class="QWidget" name="tab">
        <attribute name="title">
@@ -1986,25 +1986,41 @@ border-radius:10px;</string>
                  <item>
                   <widget class="QSpinBox" name="radius_spinBox">
                    <property name="styleSheet">
-                    <string notr="true">background-color:white;</string>
+                    <string notr="true">QSpinBox {
+    background-color: #FFFFFF;  /* Clean white background */
+    border-radius: 8px;
+    color: black;
+    border: 2px solid #F2F2F2;  /* Light gray border */
+    padding: 5px;
+    font-size: 14px;
+}
+
+/* Style for the spin buttons */
+QSpinBox::up-button, QSpinBox::down-button {
+    background-color: #3D61D3;  /* Blue buttons */
+    border: none;
+    width: 16px;
+    height: 16px;
+    border-radius: 4px;
+}
+
+/* Hover effect */
+QSpinBox::up-button:hover, QSpinBox::down-button:hover {
+    background-color: #2E4BB7;  /* Slightly darker blue on hover */
+}
+
+/* White Arrow Icons */
+QSpinBox::up-arrow, QSpinBox::down-arrow {
+    width: 10px;
+    height: 10px;
+    image: url(:/icons/white-up-arrow.png); /* Replace with actual white arrow icon */
+}
+
+QSpinBox::down-arrow {
+    image: url(:/icons/white-down-arrow.png);
+}
+</string>
                    </property>
-                  </widget>
-                 </item>
-                 <item>
-                  <widget class="QFrame" name="frame">
-                   <property name="maximumSize">
-                    <size>
-                     <width>16777215</width>
-                     <height>50</height>
-                    </size>
-                   </property>
-                   <property name="frameShape">
-                    <enum>QFrame::StyledPanel</enum>
-                   </property>
-                   <property name="frameShadow">
-                    <enum>QFrame::Raised</enum>
-                   </property>
-                   <layout class="QHBoxLayout" name="horizontalLayout_2"/>
                   </widget>
                  </item>
                  <item>
@@ -2610,8 +2626,124 @@ padding-left:5px;</string>
                    </layout>
                   </widget>
                  </item>
+                 <item>
+                  <widget class="QFrame" name="frame">
+                   <property name="maximumSize">
+                    <size>
+                     <width>16777215</width>
+                     <height>50</height>
+                    </size>
+                   </property>
+                   <property name="frameShape">
+                    <enum>QFrame::StyledPanel</enum>
+                   </property>
+                   <property name="frameShadow">
+                    <enum>QFrame::Raised</enum>
+                   </property>
+                   <layout class="QHBoxLayout" name="horizontalLayout_2">
+                    <item>
+                     <widget class="QLabel" name="label_29">
+                      <property name="sizePolicy">
+                       <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+                        <horstretch>0</horstretch>
+                        <verstretch>0</verstretch>
+                       </sizepolicy>
+                      </property>
+                      <property name="styleSheet">
+                       <string notr="true">color: rgb(0, 0, 0);
+font-weight: bold;
+font-size: 14px;</string>
+                      </property>
+                      <property name="text">
+                       <string>Area</string>
+                      </property>
+                     </widget>
+                    </item>
+                    <item>
+                     <widget class="QLabel" name="contour_points_label_2">
+                      <property name="sizePolicy">
+                       <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+                        <horstretch>0</horstretch>
+                        <verstretch>0</verstretch>
+                       </sizepolicy>
+                      </property>
+                      <property name="minimumSize">
+                       <size>
+                        <width>30</width>
+                        <height>30</height>
+                       </size>
+                      </property>
+                      <property name="styleSheet">
+                       <string notr="true">background-color: #4264EC;
+border-radius: 5px;
+color:white;
+padding-left:5px;</string>
+                      </property>
+                      <property name="text">
+                       <string>0</string>
+                      </property>
+                     </widget>
+                    </item>
+                    <item>
+                     <spacer name="horizontalSpacer">
+                      <property name="orientation">
+                       <enum>Qt::Horizontal</enum>
+                      </property>
+                      <property name="sizeHint" stdset="0">
+                       <size>
+                        <width>40</width>
+                        <height>20</height>
+                       </size>
+                      </property>
+                     </spacer>
+                    </item>
+                    <item>
+                     <widget class="QLabel" name="label_30">
+                      <property name="sizePolicy">
+                       <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+                        <horstretch>0</horstretch>
+                        <verstretch>0</verstretch>
+                       </sizepolicy>
+                      </property>
+                      <property name="styleSheet">
+                       <string notr="true">color: rgb(0, 0, 0);
+font-weight: bold;
+font-size: 14px;</string>
+                      </property>
+                      <property name="text">
+                       <string>Parametres</string>
+                      </property>
+                     </widget>
+                    </item>
+                    <item>
+                     <widget class="QLabel" name="contour_points_label_3">
+                      <property name="sizePolicy">
+                       <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+                        <horstretch>0</horstretch>
+                        <verstretch>0</verstretch>
+                       </sizepolicy>
+                      </property>
+                      <property name="minimumSize">
+                       <size>
+                        <width>30</width>
+                        <height>30</height>
+                       </size>
+                      </property>
+                      <property name="styleSheet">
+                       <string notr="true">background-color: #4264EC;
+border-radius: 5px;
+color:white;
+padding-left:5px;</string>
+                      </property>
+                      <property name="text">
+                       <string>0</string>
+                      </property>
+                     </widget>
+                    </item>
+                   </layout>
+                  </widget>
+                 </item>
                 </layout>
-                <zorder>frame</zorder>
                 <zorder>label_15</zorder>
                 <zorder>frame_26</zorder>
                 <zorder>label_20</zorder>
@@ -2624,6 +2756,7 @@ padding-left:5px;</string>
                 <zorder>label_4</zorder>
                 <zorder>frame_40</zorder>
                 <zorder>label_26</zorder>
+                <zorder>frame</zorder>
                </widget>
               </item>
               <item>
