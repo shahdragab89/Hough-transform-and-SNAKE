@@ -69,7 +69,7 @@ QTabBar::tab:!selected {
 </string>
       </property>
       <property name="currentIndex">
-       <number>0</number>
+       <number>1</number>
       </property>
       <widget class="QWidget" name="tab">
        <attribute name="title">
@@ -1158,7 +1158,7 @@ font: 75 9pt &quot;MS Shell Dlg 2&quot;;</string>
                   </widget>
                  </item>
                  <item>
-                  <widget class="QLabel" name="label_30">
+                  <widget class="QLabel" name="hough_sliderLabel1">
                    <property name="sizePolicy">
                     <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
                      <horstretch>0</horstretch>
@@ -1203,7 +1203,7 @@ font: 75 9pt &quot;MS Shell Dlg 2&quot;;
                    </property>
                    <layout class="QHBoxLayout" name="horizontalLayout_28">
                     <item>
-                     <widget class="QSlider" name="minRadius_slider">
+                     <widget class="QSlider" name="hough_slider1">
                       <property name="styleSheet">
                        <string notr="true">QSlider::groove:horizontal {
     border: 1px solid #999999; /* Light border */
@@ -1251,7 +1251,7 @@ QSlider::handle:horizontal:hover {
                      </widget>
                     </item>
                     <item>
-                     <widget class="QLabel" name="minRadius_label">
+                     <widget class="QLabel" name="hough_sliderValue1">
                       <property name="sizePolicy">
                        <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
                         <horstretch>0</horstretch>
@@ -1279,7 +1279,7 @@ padding-left:5px;</string>
                   </widget>
                  </item>
                  <item>
-                  <widget class="QLabel" name="label_31">
+                  <widget class="QLabel" name="hough_sliderLabel2">
                    <property name="sizePolicy">
                     <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
                      <horstretch>0</horstretch>
@@ -1323,7 +1323,7 @@ font: 75 9pt &quot;MS Shell Dlg 2&quot;;</string>
                    </property>
                    <layout class="QHBoxLayout" name="horizontalLayout_32">
                     <item>
-                     <widget class="QSlider" name="maxRadius_slider">
+                     <widget class="QSlider" name="hough_slider2">
                       <property name="styleSheet">
                        <string notr="true">QSlider::groove:horizontal {
     border: 1px solid #999999; /* Light border */
@@ -1371,7 +1371,7 @@ QSlider::handle:horizontal:hover {
                      </widget>
                     </item>
                     <item>
-                     <widget class="QLabel" name="minRadius_label_2">
+                     <widget class="QLabel" name="hough_sliderValue2">
                       <property name="sizePolicy">
                        <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
                         <horstretch>0</horstretch>
@@ -1399,7 +1399,7 @@ padding-left:5px;</string>
                   </widget>
                  </item>
                  <item>
-                  <widget class="QLabel" name="label_32">
+                  <widget class="QLabel" name="hough_sliderLabel3">
                    <property name="sizePolicy">
                     <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
                      <horstretch>0</horstretch>
@@ -1444,7 +1444,7 @@ font: 75 9pt &quot;MS Shell Dlg 2&quot;;
                    </property>
                    <layout class="QHBoxLayout" name="horizontalLayout_33">
                     <item>
-                     <widget class="QSlider" name="votes_slider">
+                     <widget class="QSlider" name="hough_slider3">
                       <property name="styleSheet">
                        <string notr="true">QSlider::groove:horizontal {
     border: 1px solid #999999; /* Light border */
@@ -1492,7 +1492,7 @@ QSlider::handle:horizontal:hover {
                      </widget>
                     </item>
                     <item>
-                     <widget class="QLabel" name="votes_label">
+                     <widget class="QLabel" name="hough_sliderValue3">
                       <property name="sizePolicy">
                        <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
                         <horstretch>0</horstretch>

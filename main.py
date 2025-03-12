@@ -14,6 +14,9 @@ import traceback
 from edgedetectors import EdgeDetector
 from PyQt5.QtCore import QBuffer, QIODevice
 import PIL.ImageQt as ImageQtModule
+from hough import Hough
+from PyQt5.QtGui import QImage, QPixmap
+from worker import Worker
 
 
 # Manually patch QBuffer and QIODevice into ImageQt
@@ -39,11 +42,21 @@ class MainApp(QtWidgets.QMainWindow, ui):
         self.filterUpload_button.clicked.connect(lambda: self.uploadImage(1))
         self.filterDownload_button.clicked.connect(self.downloadImage)
         self.houghUpload_button.clicked.connect(lambda: self.uploadImage(2))
+        self.houghClear_button.clicked.connect(self.clear_hough)
+        self.houghApply_button.clicked.connect(self.handleHough)
+
+        # Initialing Radio Buttons
+        self.lines_radioButton.clicked.connect(lambda: self.handleRadio("lines"))
+        self.circles_radioButton.clicked.connect(lambda: self.handleRadio("circles"))
+        self.ellipses_radioButton.clicked.connect(lambda: self.handleRadio("ellipses"))
 
         # Initializing Sliders
         self.kernel_slider.sliderReleased.connect(self.handleFilter)
         self.sigma_slider.sliderReleased.connect(self.handleFilter)
         self.mean_slider.sliderReleased.connect(self.handleFilter)
+        # self.hough_slider1.valueChanged.connect(lambda: self.handleHough(self.label))
+        # self.hough_slider2.valueChanged.connect(lambda: self.handleHough(self.label))
+        # self.hough_slider3.valueChanged.connect(lambda: self.handleHough(self.label))
 
         # Allow scaling of image
         self.original_image.setScaledContents(True)  
@@ -64,6 +77,9 @@ class MainApp(QtWidgets.QMainWindow, ui):
         self.mean_slider.setMinimum(10)    # 0.1 after division
         self.mean_slider.setMaximum(60)    # 0.6 after division
         self.mean_slider.setValue(15)      # 0.15 after division (good default)
+
+        # To change the UI labels
+        self.worker = Worker(self)
 
     def handle_kernelSlider(self):
         # Get sigma value (divide by 10 for finer control)
@@ -105,10 +121,10 @@ class MainApp(QtWidgets.QMainWindow, ui):
                     self.filtered_image.setPixmap(QPixmap.fromImage(q_image))
 
                 case 2:
-                    q_image, self.image = self.process_and_store_grayscale(file_path)  
-                    self.inputImage_hough.setPixmap(QPixmap.fromImage(q_image))
-                    self.resultImage_hough.setPixmap(QPixmap.fromImage(q_image))
-                
+                    self.q_image, self.image = self.process_and_store_grayscale(file_path)  
+                    self.inputImage_hough.setPixmap(QPixmap.fromImage(self.q_image))
+                    self.resultImage_hough.setPixmap(QPixmap.fromImage(self.q_image))
+                    self.clear_hough()
                 case 3:
                     return
 
@@ -205,6 +221,50 @@ class MainApp(QtWidgets.QMainWindow, ui):
         return q_image, grayscale_array 
 
 
+
+    def convert_numpy_to_qimage(self, numpy_image):
+        """
+        Convert a NumPy image to QImage.
+        """
+        height, width = numpy_image.shape[:2]
+        
+        # Check if grayscale or color
+        if len(numpy_image.shape) == 2:  # Grayscale
+            bytes_per_line = width
+            return QImage(numpy_image.data, width, height, bytes_per_line, QImage.Format_Grayscale8)
+        else:  # Color (BGR)
+            bytes_per_line = 3 * width
+            return QImage(numpy_image.data, width, height, bytes_per_line, QImage.Format_RGB888).rgbSwapped()
+
+    def handleRadio(self, label):
+        self.label = label
+
+    def handleHough(self):
+        if self.label == "lines":
+            if self.image is None:
+                print("Error: Could not read the image.")
+                return
+            
+            # To change the UI labels
+            self.worker.update_label("lines")
+            
+            lowThreshold, highThreshold, votes = self.worker.get_slider_values()
+            result_image = Hough.detect_lines(self.image, lowThreshold, highThreshold, votes)
+
+        elif self.label == "circles":
+            self.worker.update_label("circles")
+            
+        elif self.label == "ellipses":
+            pass
+
+        # Convert to QImage before setting as QPixmap
+        qimage = self.convert_numpy_to_qimage(result_image)
+        self.resultImage_hough.setPixmap(QPixmap.fromImage(qimage))
+
+    def clear_hough(self):
+        self.worker.clear()
+        self.inputImage_hough.setPixmap(QPixmap.fromImage(self.q_image))
+        self.resultImage_hough.setPixmap(QPixmap.fromImage(self.q_image))
 
 if __name__ == "__main__":
     app = QtWidgets.QApplication(sys.argv)
