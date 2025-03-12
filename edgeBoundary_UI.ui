@@ -69,7 +69,7 @@ QTabBar::tab:!selected {
 </string>
       </property>
       <property name="currentIndex">
-       <number>0</number>
+       <number>2</number>
       </property>
       <widget class="QWidget" name="tab">
        <attribute name="title">
@@ -2004,37 +2004,7 @@ border-radius:10px;</string>
                    <property name="frameShadow">
                     <enum>QFrame::Raised</enum>
                    </property>
-                   <layout class="QHBoxLayout" name="horizontalLayout_2">
-                    <item>
-                     <widget class="QRadioButton" name="radioButton">
-                      <property name="font">
-                       <font>
-                        <family>MS Shell Dlg 2</family>
-                        <pointsize>-1</pointsize>
-                        <weight>50</weight>
-                        <italic>false</italic>
-                        <bold>false</bold>
-                       </font>
-                      </property>
-                      <property name="styleSheet">
-                       <string notr="true">font-size:15px;</string>
-                      </property>
-                      <property name="text">
-                       <string>Manual Drawing</string>
-                      </property>
-                     </widget>
-                    </item>
-                    <item>
-                     <widget class="QRadioButton" name="radioButton_2">
-                      <property name="styleSheet">
-                       <string notr="true">font-size:15px;</string>
-                      </property>
-                      <property name="text">
-                       <string>Initial Circle</string>
-                      </property>
-                     </widget>
-                    </item>
-                   </layout>
+                   <layout class="QHBoxLayout" name="horizontalLayout_2"/>
                   </widget>
                  </item>
                  <item>
@@ -2542,7 +2512,7 @@ font: 75 9pt &quot;MS Shell Dlg 2&quot;;
 </string>
                    </property>
                    <property name="text">
-                    <string>Contour Size</string>
+                    <string>Contour Points</string>
                    </property>
                   </widget>
                  </item>
@@ -2565,7 +2535,7 @@ font: 75 9pt &quot;MS Shell Dlg 2&quot;;
                    </property>
                    <layout class="QHBoxLayout" name="horizontalLayout_24">
                     <item>
-                     <widget class="QSlider" name="iteration_slider_2">
+                     <widget class="QSlider" name="contour_points_slider">
                       <property name="styleSheet">
                        <string notr="true">QSlider::groove:horizontal {
     border: 1px solid #999999; /* Light border */
@@ -2613,7 +2583,7 @@ QSlider::handle:horizontal:hover {
                      </widget>
                     </item>
                     <item>
-                     <widget class="QLabel" name="iteration_label_2">
+                     <widget class="QLabel" name="contour_points_label">
                       <property name="sizePolicy">
                        <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
                         <horstretch>0</horstretch>

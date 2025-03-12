@@ -14,6 +14,7 @@ import traceback
 from edgedetectors import EdgeDetector
 from PyQt5.QtCore import QBuffer, QIODevice
 import PIL.ImageQt as ImageQtModule
+from active_contour_widget import ActiveContourWidget 
 
 
 # Manually patch QBuffer and QIODevice into ImageQt
@@ -39,6 +40,7 @@ class MainApp(QtWidgets.QMainWindow, ui):
         self.filterUpload_button.clicked.connect(lambda: self.uploadImage(1))
         self.filterDownload_button.clicked.connect(self.downloadImage)
         self.houghUpload_button.clicked.connect(lambda: self.uploadImage(2))
+        self.snakeUpload_button.clicked.connect(lambda: self.uploadImage(3)) 
 
         # Initializing Sliders
         self.kernel_slider.sliderReleased.connect(self.handleFilter)
@@ -64,6 +66,8 @@ class MainApp(QtWidgets.QMainWindow, ui):
         self.mean_slider.setMinimum(10)    # 0.1 after division
         self.mean_slider.setMaximum(60)    # 0.6 after division
         self.mean_slider.setValue(15)      # 0.15 after division (good default)
+
+        self.active_contour_widget = ActiveContourWidget(self)
 
     def handle_kernelSlider(self):
         # Get sigma value (divide by 10 for finer control)
@@ -92,7 +96,7 @@ class MainApp(QtWidgets.QMainWindow, ui):
         
     def uploadImage(self, value):
         options = QFileDialog.Options()
-        file_path, _ = QFileDialog.getOpenFileName(self, "Open Image File", "", "Images (*.png *.xpm *.jpg *.jpeg *.bmp);;All Files (*)", options=options)
+        file_path, _ = QFileDialog.getOpenFileName(self, "Open Image File", "", "Images (*.png *.xpm *.jpg *.jpeg *.bmp *.webp);;All Files (*)", options=options)
         
         if file_path:
            
@@ -110,7 +114,9 @@ class MainApp(QtWidgets.QMainWindow, ui):
                     self.resultImage_hough.setPixmap(QPixmap.fromImage(q_image))
                 
                 case 3:
-                    return
+                    q_image, self.image = self.process_and_store_grayscale(file_path)  
+                    self.inputImage_snake.setPixmap(QPixmap.fromImage(q_image))
+                    self.active_contour_widget.set_image(self.image)
 
 
             # Set scaled contents for each QLabel only once
