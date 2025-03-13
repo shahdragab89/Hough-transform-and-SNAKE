@@ -2013,11 +2013,11 @@ QSpinBox::up-button:hover, QSpinBox::down-button:hover {
 QSpinBox::up-arrow, QSpinBox::down-arrow {
     width: 10px;
     height: 10px;
-    image: url(:/icons/white-up-arrow.png); /* Replace with actual white arrow icon */
+    image: url(:/icons/icons8-chevron-up-100.png); /* Replace with actual white arrow icon */
 }
 
 QSpinBox::down-arrow {
-    image: url(:/icons/white-down-arrow.png);
+    image: url(:/icons/icons8-chevron-up-100.png);
 }
 </string>
                    </property>
