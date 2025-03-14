@@ -7,21 +7,22 @@ class ActiveContourWidget:
         self.ui = ui
         self.image = None
         self.contour = None
-        self.radius = 50
+        self.radius = 100
         self.alpha = 1.0
         self.beta = 1.0
         self.gamma = 1.0
+        self.balloon = 0.3
         self.iterations = 100
         self.num_points = 100
+        self.edge_map = None
+        self.chain_code = ""
 
-
-        # Update maximum values for UI controls
-        self.ui.radius_spinBox.setMaximum(500)  # Increased max from 99 to 500
-        self.ui.alpha_slider.setMaximum(300)    # Allows finer alpha tuning (0.0 - 10.0)
-        self.ui.beta_slider.setMaximum(300)     # Allows finer beta tuning (0.0 - 10.0)
-        self.ui.gamma_slider.setMaximum(300)    # Allows finer gamma tuning (0.0 - 10.0)
-        self.ui.iteration_slider.setMaximum(500)  # More iterations allowed
-        self.ui.contour_points_slider.setMaximum(500)  # More contour points
+        self.ui.radius_spinBox.setMaximum(500)  
+        self.ui.alpha_slider.setMaximum(200)   
+        self.ui.beta_slider.setMaximum(200)     
+        self.ui.gamma_slider.setMaximum(200)    
+        self.ui.iteration_slider.setMaximum(500)  
+        self.ui.contour_points_slider.setMaximum(500)  
         
         # Connect UI elements
         self.ui.snakeApply_button.clicked.connect(self.apply_active_contour)
@@ -48,7 +49,17 @@ class ActiveContourWidget:
     
     def set_image(self, image):
         self.image = image
+        self.compute_edge_map()
         self.draw_initial_contour()
+        self.ui.resultImage_snake.clear()
+        self.ui.area_label.setText("0")
+        self.ui.perimeter_label.setText("0")
+
+
+    def compute_edge_map(self):
+        gx, gy = np.gradient(self.image.astype(float))
+        gradient_magnitude = np.sqrt(gx**2 + gy**2)
+        self.edge_map = gradient_magnitude / gradient_magnitude.max()  
     
     def draw_initial_contour(self):
         if self.image is None:
@@ -67,16 +78,13 @@ class ActiveContourWidget:
         if self.image is None or self.contour is None:
             return
         
-        image_copy = np.stack((self.image,)*3, axis=-1)  # Convert grayscale to RGB manually
+        image_copy = np.stack((self.image,)*3, axis=-1)  
         
-        # Draw the contour as a blue circle (thicker)
         for i, pt in enumerate(self.contour):
             x, y = pt
             if 0 <= x < image_copy.shape[1] and 0 <= y < image_copy.shape[0]:
-                image_copy[y-1:y+2, x-1:x+2] = [0, 0, 255]  # Blue, thicker
+                image_copy[y-1:y+2, x-1:x+2] = [0, 0, 255]  
                 
-                # Draw contour points as red dots
-                image_copy[y,x] = [255, 0, 0]  # Red dots
         
         q_image = self.numpy_to_qimage(image_copy)
         self.ui.inputImage_snake.setPixmap(QPixmap.fromImage(q_image))
@@ -93,44 +101,49 @@ class ActiveContourWidget:
         for _ in range(self.iterations):
             self.contour = self.update_contour(self.contour)
             self.display_result_image()
+            self.calculate_area_perimeter()
     
     def update_contour(self, contour):
         new_contour = np.copy(contour)
-        N = len(contour)  # Number of contour points
-        
+        N = len(contour)  
+
         for i in range(N):
             min_energy = float('inf')
             best_point = contour[i]
-            
+
             for dx in [-1, 0, 1]:
                 for dy in [-1, 0, 1]:
                     new_point = contour[i] + np.array([dx, dy])
-                    
-                    # Elasticity Energy (E_elastic)
+
+                    # Elasticity Energy
                     elasticity_energy = self.alpha * ((new_point[0] - contour[(i-1) % N][0])**2 + 
                                                       (new_point[1] - contour[(i-1) % N][1])**2)
-                    
-                    # Smoothness Energy (E_smooth)
+
+                    # Smoothness Energy
                     smoothness_energy = self.beta * (((contour[(i+1) % N][0] - 2 * new_point[0] + contour[(i-1) % N][0])**2) + 
-                                                    ((contour[(i+1) % N][1] - 2 * new_point[1] + contour[(i-1) % N][1])**2))
-                    
-                    # External Energy (Edge Attraction)
+                                                     ((contour[(i+1) % N][1] - 2 * new_point[1] + contour[(i-1) % N][1])**2))
+
+                    # External Energy
                     external_energy = -self.gamma * self.get_pixel_intensity(new_point)
-                    
-                    total_energy = elasticity_energy + smoothness_energy + external_energy
-                    
+
+                    # Balloon Force 
+                    balloon_force = self.balloon * (1 if self.balloon > 0 else -1)
+
+                    # Total Energy
+                    total_energy = elasticity_energy + smoothness_energy + external_energy + balloon_force
+
                     if total_energy < min_energy:
                         min_energy = total_energy
                         best_point = new_point
-            
+
             new_contour[i] = best_point
         return new_contour
-    
+
     def get_pixel_intensity(self, point):
         x, y = point
-        if 0 <= x < self.image.shape[1] and 0 <= y < self.image.shape[0]:
-            return self.image[y, x]
-        return 0  # Default to zero if out of bounds
+        if 0 <= x < self.edge_map.shape[1] and 0 <= y < self.edge_map.shape[0]:
+            return self.edge_map[y, x]  
+        return 0
     
     def display_result_image(self):
         if self.image is None or self.contour is None:
@@ -140,10 +153,26 @@ class ActiveContourWidget:
         for pt in self.contour:
             x, y = pt
             if 0 <= x < result_image.shape[1] and 0 <= y < result_image.shape[0]:
-                result_image[y-2:y+3, x-2:x+3] = [255, 0, 0]  # Red for final contour
+                result_image[y-1:y+2, x-1:x+2] = [255, 0, 0]  
         
         q_image = self.numpy_to_qimage(result_image)
         self.ui.resultImage_snake.setPixmap(QPixmap.fromImage(q_image))
+        self.ui.resultImage_snake.setScaledContents(True)
+
+
+    def calculate_area_perimeter(self):
+        x = self.contour[:, 0]
+        y = self.contour[:, 1]
+        
+        # Compute perimeter using Euclidean distance
+        perimeter = np.sum(np.sqrt(np.diff(x, append=x[0])**2 + np.diff(y, append=y[0])**2))
+        
+        # Compute area using Shoelace formula
+        area = 0.5 * np.abs(np.dot(x, np.roll(y, 1)) - np.dot(y, np.roll(x, 1)))
+        
+        self.ui.area_label.setText(f"{area:.1f}")
+        self.ui.perimeter_label.setText(f"{perimeter:.1f}")
+
     
     def update_radius(self, value):
         self.radius = value
