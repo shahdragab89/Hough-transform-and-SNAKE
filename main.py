@@ -263,6 +263,9 @@ class MainApp(QtWidgets.QMainWindow, ui):
 
         elif self.label == "circles":
             self.worker.update_label("circles")
+            minRadius, maxRadius, _ = self.worker.get_slider_values()
+            result_image = Hough.hough_circles(self.image, min_radius=minRadius, max_radius=maxRadius)
+            # result_image = Hough.detect_circles("/data_sets/Circles.jpg")
             
         elif self.label == "ellipses":
             pass

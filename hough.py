@@ -79,4 +79,123 @@ class Hough:
         lines = [(rhos[rho_idx], thetas[theta_idx]) for rho_idx, theta_idx in line_indices]
         
         return np.array(lines).reshape(-1, 1, 2)  
+    
 
+    @staticmethod
+    def enhance_contrast(image):
+        lab = cv2.cvtColor(image, cv2.COLOR_BGR2LAB)
+        l, a, b = cv2.split(lab)
+        clahe = cv2.createCLAHE(clipLimit=3.0, tileGridSize=(8,8))
+        l = clahe.apply(l)
+        enhanced_lab = cv2.merge((l, a, b))
+        return cv2.cvtColor(enhanced_lab,cv2.COLOR_LAB2BGR)
+
+
+    @staticmethod
+    def detectCircles(img, threshold, region, radius=None):
+        """
+        Detect circles in an image using a Hough Transform approach.
+
+        :param img: Input image
+        :param threshold: Minimum votes required to consider a valid circle
+        :param region: Region around a detected circle to find maxima
+        :param radius: Range of radius values as [max_radius, min_radius]
+        :return: Accumulator array indicating detected circles
+        """
+        # Convert to grayscale if necessary
+        if len(img.shape) == 3 and img.shape[2] == 3:
+            img = Hough.enhance_contrast(img)
+            img = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+
+        # Apply Gaussian Blur and Canny Edge Detection
+        img = cv2.GaussianBlur(img, (5, 5), 1.5)
+        img = cv2.Canny(img, 100, 200)
+
+        # Image dimensions
+        (M, N) = img.shape
+
+        # Define radius range
+        if radius is None:
+            R_max = np.max((M, N))
+            R_min = 3
+        else:
+            [R_max, R_min] = radius
+
+        R = R_max - R_min
+
+        # Initialize accumulator arrays with padding to avoid overflow issues
+        A = np.zeros((R_max, M + 2 * R_max, N + 2 * R_max))
+        B = np.zeros((R_max, M + 2 * R_max, N + 2 * R_max))
+
+        # Precompute angles for circle perimeter
+        theta = np.deg2rad(np.arange(0, 360))
+        edges = np.argwhere(img)  # Get edge pixel coordinates
+
+        for val in range(R):
+            r = R_min + val
+            # Create a circle blueprint
+            bprint = np.zeros((2 * (r + 1), 2 * (r + 1)))
+            (m, n) = (r + 1, r + 1)  # Center of the blueprint
+
+            for angle in theta:
+                x = int(np.round(r * np.cos(angle)))
+                y = int(np.round(r * np.sin(angle)))
+                bprint[m + x, n + y] = 1
+
+            constant = np.count_nonzero(bprint)
+
+            # Update accumulator array
+            for x, y in edges:
+                X = [x - m + R_max, x + m + R_max]  # Compute extreme X values
+                Y = [y - n + R_max, y + n + R_max]  # Compute extreme Y values
+                A[r, X[0]:X[1], Y[0]:Y[1]] += bprint
+
+            A[r][A[r] < threshold * constant / max(r, 1)] = 0  # Prevent division by zero
+
+        # Find local maxima in the accumulator
+        for r, x, y in np.argwhere(A):
+            temp = A[r - region:r + region, x - region:x + region, y - region:y + region]
+            try:
+                p, a, b = np.unravel_index(np.argmax(temp), temp.shape)
+            except:
+                continue
+            B[r + (p - region), x + (a - region), y + (b - region)] = 1
+
+        return B[:, R_max:-R_max, R_max:-R_max]
+
+    @staticmethod
+    def displayCircles(A, img):
+        """
+        Draw detected circles on the original image.
+
+        :param A: Accumulator array containing detected circles
+        :param img: Original image
+        :return: Image with detected circles drawn
+        """
+        circleCoordinates = np.argwhere(A)  # Extract circle information
+        for r, x, y in circleCoordinates:
+            cv2.circle(img, (y, x), r, color=(0, 255, 0), thickness=2)
+        return img
+
+
+    @staticmethod
+    def hough_circles(source: np.ndarray, min_radius: int = 20, max_radius: int = 50) -> np.ndarray:
+        """
+        Apply the Hough Circle Detection on the given image with optimized parameters.
+
+        :param source: Input image
+        :param min_radius: Minimum circle radius
+        :param max_radius: Maximum circle radius
+        :return: Image with detected circles drawn
+        """
+        src = np.copy(source)
+
+        # Apply optimized detection
+        circles = Hough.detectCircles(
+            src, 
+            threshold=15,  # Increased from 8 to 15 to reduce false positives
+            region=10,     # Decreased from 15 to 10 for better accuracy
+            radius=[max_radius, min_radius]
+        )
+
+        return Hough.displayCircles(circles, src)

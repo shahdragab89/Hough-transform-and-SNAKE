@@ -21,8 +21,9 @@ class Worker:
         elif label == "circles":
             self.main_window.hough_sliderLabel1.setText("Minimun Radius")
             self.main_window.hough_sliderLabel2.setText("Maximum Radius")
-            self.main_window.hough_sliderLabel3.setText(" ")
-            self.main_window.frame_47.hide()
+            self.main_window.hough_sliderLabel3.setText("DP")
+            # self.main_window.frame_47.hide()
+            self.update_slider_ranges()
 
         elif label == "ellipses":
             pass
@@ -48,7 +49,9 @@ class Worker:
             self.main_window.hough_slider2.setRange(50, 255)
             self.main_window.hough_slider3.setRange(1, 300)
         elif self.label == "circles":
-            pass
+            self.main_window.hough_slider1.setRange(1, 100)  # Min Radius
+            self.main_window.hough_slider2.setRange(10, 200)  # Max Radius
+            self.main_window.hough_slider3.setRange(1, 5)  # DP (Resolution Factor)
         elif self.label == "ellipses":
             pass
 
