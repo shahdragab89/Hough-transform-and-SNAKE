@@ -199,3 +199,53 @@ class Hough:
         )
 
         return Hough.displayCircles(circles, src)
+    
+    @staticmethod
+    def hough_ellipses(source, low_threshold=100, high_threshold=200, min_axis=20, max_axis=100, aspect_ratio_thresh=1.5):
+        """
+        Detects ellipses in an image using contour approximation.
+
+        :param source: Input image
+        :param low_threshold: Lower threshold for Canny edge detection
+        :param high_threshold: Upper threshold for Canny edge detection
+        :param min_axis: Minimum axis length for valid ellipses
+        :param max_axis: Maximum axis length for valid ellipses
+        :param aspect_ratio_thresh: Minimum aspect ratio to consider a contour as an ellipse
+        :return: Image with detected ellipses drawn
+        """
+        img = np.copy(source)
+
+        # Convert to grayscale if needed
+        if len(img.shape) == 3:
+            gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+        else:
+            gray = img
+
+        # Apply Canny edge detection
+        edges = cv2.Canny(gray, low_threshold, high_threshold)
+
+        # Find contours
+        contours, _ = cv2.findContours(edges, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+
+        # Iterate through contours and detect ellipses
+        for contour in contours:
+            if len(contour) >= 5:  # Ensure sufficient points
+                # Approximate the contour to reduce complexity
+                approx = cv2.approxPolyDP(contour, epsilon=0.02 * cv2.arcLength(contour, True), closed=True)
+
+                # Get rotated bounding box (minimum enclosing rectangle)
+                rect = cv2.minAreaRect(approx)
+                (x, y), (width, height), angle = rect
+
+                # Ensure valid size range
+                if min_axis <= width <= max_axis and min_axis <= height <= max_axis:
+                    aspect_ratio = max(width, height) / min(width, height)
+
+                    # Ensure aspect ratio is not too close to 1 (to avoid detecting circles)
+                    if aspect_ratio >= aspect_ratio_thresh:
+                        # Draw the rotated rectangle (representing the ellipse)
+                        box = cv2.boxPoints(rect)
+                        box = np.int0(box)
+                        cv2.drawContours(img, [box], 0, (0, 255, 0), 2)  # Green color
+
+        return img

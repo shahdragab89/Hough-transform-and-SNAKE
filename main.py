@@ -56,6 +56,7 @@ class MainApp(QtWidgets.QMainWindow, ui):
         self.kernel_slider.sliderReleased.connect(self.handleFilter)
         self.sigma_slider.sliderReleased.connect(self.handleFilter)
         self.mean_slider.sliderReleased.connect(self.handleFilter)
+        self.frame_49.hide()
         # self.hough_slider1.valueChanged.connect(lambda: self.handleHough(self.label))
         # self.hough_slider2.valueChanged.connect(lambda: self.handleHough(self.label))
         # self.hough_slider3.valueChanged.connect(lambda: self.handleHough(self.label))
@@ -268,7 +269,10 @@ class MainApp(QtWidgets.QMainWindow, ui):
             # result_image = Hough.detect_circles("/data_sets/Circles.jpg")
             
         elif self.label == "ellipses":
-            pass
+            self.worker.update_label("ellipses")
+            lowThreshold, highThreshold, minAxis, maxAxis = self.worker.get_slider_values()
+            result_image = Hough.hough_ellipses(self.image, low_threshold=lowThreshold, high_threshold=highThreshold, min_axis=minAxis, max_axis=maxAxis)
+
 
         # Convert to QImage before setting as QPixmap
         qimage = self.convert_numpy_to_qimage(result_image)
