@@ -203,45 +203,45 @@ class Hough:
 
 
     @staticmethod
-    def hough_ellipses(image, low_threshold, high_threshold, min_axis, max_axis = 150):
+    def hough_ellipses(image, low_threshold, high_threshold, min_axis, max_axis):
         """
-        Detect ellipses in an image using edge detection and contour analysis.
+        Detect ellipses in an image using edge detection and RANSAC-based ellipse fitting.
         
-        :param image: Input image (grayscale or BGR)
+        :param image: Input image
         :param low_threshold: Lower threshold for edge detection
         :param high_threshold: Upper threshold for edge detection
-        :param min_axis: Minimum ellipse axis length
-        :param max_axis: Maximum ellipse axis length
+        :param min_axis: Minimum axis length for valid ellipses
+        :param max_axis: Maximum axis length for valid ellipses
         :return: Image with detected ellipses drawn
         """
         if image is None:
             print("Error: Image is None.")
             return None
 
-        # Convert image to grayscale if needed
+        # Convert to grayscale if needed
         if len(image.shape) == 3:
             gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
         else:
             gray = image.copy()
 
-        # Apply Gaussian Blur to reduce noise
+        # Apply Gaussian blur
         blurred = cv2.GaussianBlur(gray, (5, 5), 1.5)
 
-        # Detect edges using Canny
+        # Apply Canny edge detection
         edges = cv2.Canny(blurred, low_threshold, high_threshold)
 
-        # Find contours from the detected edges
-        contours, _ = cv2.findContours(edges, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
+        # Find contours
+        contours, _ = cv2.findContours(edges, cv2.RETR_LIST, cv2.CHAIN_APPROX_SIMPLE)
 
+        # Convert grayscale image to BGR for displaying results
         output_image = cv2.cvtColor(gray, cv2.COLOR_GRAY2BGR)
 
-        # Loop through each contour and fit an ellipse
         for contour in contours:
-            if len(contour) >= 5:  # Minimum points required to fit an ellipse
+            if len(contour) >= 5:  # Ellipse fitting requires at least 5 points
                 ellipse = cv2.fitEllipse(contour)
                 (x, y), (major_axis, minor_axis), angle = ellipse
 
-                # Filter ellipses based on axis length
+                # Check if the detected ellipse meets axis constraints
                 if min_axis <= major_axis <= max_axis and min_axis <= minor_axis <= max_axis:
                     cv2.ellipse(output_image, ellipse, (0, 255, 0), 2)  # Draw ellipse
 
