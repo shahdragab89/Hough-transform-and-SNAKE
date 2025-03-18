@@ -15,8 +15,10 @@ class Worker:
             self.main_window.hough_sliderLabel1.setText("Low Threshold")
             self.main_window.hough_sliderLabel2.setText("High Threshold")
             self.main_window.hough_sliderLabel3.setText("Votes")
+            self.main_window.hough_sliderLabel3.show()
             self.main_window.frame_47.show()
-            self.main_window.frame_49.hide()
+            self.main_window.frame_48.hide()
+            self.main_window.hough_sliderLabel4.hide()
 
             self.update_slider_ranges()
 
@@ -24,8 +26,10 @@ class Worker:
             self.main_window.hough_sliderLabel1.setText("Minimun Radius")
             self.main_window.hough_sliderLabel2.setText("Maximum Radius")
             # self.main_window.hough_sliderLabel3.setText("DP")
+            self.main_window.hough_sliderLabel3.hide()
+            self.main_window.hough_sliderLabel4.hide()
             self.main_window.frame_47.hide()
-            self.main_window.frame_49.hide()
+            self.main_window.frame_48.hide()
             self.update_slider_ranges()
 
         elif label == "ellipses":
@@ -33,8 +37,10 @@ class Worker:
             self.main_window.hough_sliderLabel2.setText("High Threshold")
             self.main_window.hough_sliderLabel3.setText("Min Axis")
             self.main_window.hough_sliderLabel4.setText("Max Axis")
+            self.main_window.hough_sliderLabel3.show()
+            self.main_window.hough_sliderLabel4.show()
             self.main_window.frame_47.show()
-            self.main_window.frame_49.show()
+            self.main_window.frame_48.show()
 
     def get_slider_values(self):
         value1 = self.main_window.hough_slider1.value()
@@ -65,7 +71,7 @@ class Worker:
             self.main_window.hough_slider1.setRange(0, 255)  # Set range
             self.main_window.hough_slider2.setRange(0, 255)
             self.main_window.hough_slider3.setRange(10, 100)
-            self.main_window.hough_slider3.setRange(50, 300)
+            self.main_window.hough_slider4.setRange(50, 300)
 
     def clear(self):
         self.main_window.hough_slider1.setValue(0)  

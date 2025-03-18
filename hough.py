@@ -1,6 +1,7 @@
 import cv2
 import numpy as np
 from edgedetectors import EdgeDetector
+from filters import FilterProcessor
 
 class Hough:
     @staticmethod
@@ -19,8 +20,7 @@ class Hough:
         else:
             gray = image.copy()  
 
-        # Apply Canny edge detection (merge with baty!!)  ------>
-        img = cv2.GaussianBlur(gray, (5, 5), 1.5)
+        img = FilterProcessor.gaussian_filter(gray, 5, 1.5)
         edges = cv2.Canny(img, low_threshold, high_threshold)
 
         # Apply Hough Line Transform
@@ -81,14 +81,14 @@ class Hough:
         return np.array(lines).reshape(-1, 1, 2)  
     
 
-    @staticmethod
-    def enhance_contrast(image):
-        lab = cv2.cvtColor(image, cv2.COLOR_BGR2LAB)
-        l, a, b = cv2.split(lab)
-        clahe = cv2.createCLAHE(clipLimit=3.0, tileGridSize=(8,8))
-        l = clahe.apply(l)
-        enhanced_lab = cv2.merge((l, a, b))
-        return cv2.cvtColor(enhanced_lab,cv2.COLOR_LAB2BGR)
+    # @staticmethod
+    # def enhance_contrast(image):
+    #     lab = cv2.cvtColor(image, cv2.COLOR_BGR2LAB)
+    #     l, a, b = cv2.split(lab)
+    #     clahe = cv2.createCLAHE(clipLimit=3.0, tileGridSize=(8,8))
+    #     l = clahe.apply(l)
+    #     enhanced_lab = cv2.merge((l, a, b))
+    #     return cv2.cvtColor(enhanced_lab,cv2.COLOR_LAB2BGR)
 
 
     @staticmethod
@@ -102,13 +102,14 @@ class Hough:
         :param radius: Range of radius values as [max_radius, min_radius]
         :return: Accumulator array indicating detected circles
         """
-        # Convert to grayscale if necessary
+        # Convert to grayscale
         if len(img.shape) == 3 and img.shape[2] == 3:
-            img = Hough.enhance_contrast(img)
+            # img = Hough.enhance_contrast(img)
             img = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
 
         # Apply Gaussian Blur and Canny Edge Detection
-        img = cv2.GaussianBlur(img, (5, 5), 1.5)
+        # img = cv2.GaussianBlur(img, (5, 5), 1.5)
+        img = FilterProcessor.gaussian_filter(img, 5, 1.5)
         img = cv2.Canny(img, 100, 200)
 
         # Image dimensions
@@ -199,53 +200,49 @@ class Hough:
         )
 
         return Hough.displayCircles(circles, src)
-    
-    @staticmethod
-    def hough_ellipses(source, low_threshold=100, high_threshold=200, min_axis=20, max_axis=100, aspect_ratio_thresh=1.5):
-        """
-        Detects ellipses in an image using contour approximation.
 
-        :param source: Input image
-        :param low_threshold: Lower threshold for Canny edge detection
-        :param high_threshold: Upper threshold for Canny edge detection
-        :param min_axis: Minimum axis length for valid ellipses
-        :param max_axis: Maximum axis length for valid ellipses
-        :param aspect_ratio_thresh: Minimum aspect ratio to consider a contour as an ellipse
+
+    @staticmethod
+    def hough_ellipses(image, low_threshold, high_threshold, min_axis, max_axis = 150):
+        """
+        Detect ellipses in an image using edge detection and contour analysis.
+        
+        :param image: Input image (grayscale or BGR)
+        :param low_threshold: Lower threshold for edge detection
+        :param high_threshold: Upper threshold for edge detection
+        :param min_axis: Minimum ellipse axis length
+        :param max_axis: Maximum ellipse axis length
         :return: Image with detected ellipses drawn
         """
-        img = np.copy(source)
+        if image is None:
+            print("Error: Image is None.")
+            return None
 
-        # Convert to grayscale if needed
-        if len(img.shape) == 3:
-            gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+        # Convert image to grayscale if needed
+        if len(image.shape) == 3:
+            gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
         else:
-            gray = img
+            gray = image.copy()
 
-        # Apply Canny edge detection
-        edges = cv2.Canny(gray, low_threshold, high_threshold)
+        # Apply Gaussian Blur to reduce noise
+        blurred = cv2.GaussianBlur(gray, (5, 5), 1.5)
 
-        # Find contours
-        contours, _ = cv2.findContours(edges, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+        # Detect edges using Canny
+        edges = cv2.Canny(blurred, low_threshold, high_threshold)
 
-        # Iterate through contours and detect ellipses
+        # Find contours from the detected edges
+        contours, _ = cv2.findContours(edges, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
+
+        output_image = cv2.cvtColor(gray, cv2.COLOR_GRAY2BGR)
+
+        # Loop through each contour and fit an ellipse
         for contour in contours:
-            if len(contour) >= 5:  # Ensure sufficient points
-                # Approximate the contour to reduce complexity
-                approx = cv2.approxPolyDP(contour, epsilon=0.02 * cv2.arcLength(contour, True), closed=True)
+            if len(contour) >= 5:  # Minimum points required to fit an ellipse
+                ellipse = cv2.fitEllipse(contour)
+                (x, y), (major_axis, minor_axis), angle = ellipse
 
-                # Get rotated bounding box (minimum enclosing rectangle)
-                rect = cv2.minAreaRect(approx)
-                (x, y), (width, height), angle = rect
+                # Filter ellipses based on axis length
+                if min_axis <= major_axis <= max_axis and min_axis <= minor_axis <= max_axis:
+                    cv2.ellipse(output_image, ellipse, (0, 255, 0), 2)  # Draw ellipse
 
-                # Ensure valid size range
-                if min_axis <= width <= max_axis and min_axis <= height <= max_axis:
-                    aspect_ratio = max(width, height) / min(width, height)
-
-                    # Ensure aspect ratio is not too close to 1 (to avoid detecting circles)
-                    if aspect_ratio >= aspect_ratio_thresh:
-                        # Draw the rotated rectangle (representing the ellipse)
-                        box = cv2.boxPoints(rect)
-                        box = np.int0(box)
-                        cv2.drawContours(img, [box], 0, (0, 255, 0), 2)  # Green color
-
-        return img
+        return output_image

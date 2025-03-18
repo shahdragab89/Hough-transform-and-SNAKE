@@ -56,11 +56,8 @@ class MainApp(QtWidgets.QMainWindow, ui):
         self.kernel_slider.sliderReleased.connect(self.handleFilter)
         self.sigma_slider.sliderReleased.connect(self.handleFilter)
         self.mean_slider.sliderReleased.connect(self.handleFilter)
-        self.frame_49.hide()
-        # self.hough_slider1.valueChanged.connect(lambda: self.handleHough(self.label))
-        # self.hough_slider2.valueChanged.connect(lambda: self.handleHough(self.label))
-        # self.hough_slider3.valueChanged.connect(lambda: self.handleHough(self.label))
-
+        self.frame_48.hide()
+        
         # Allow scaling of image
         self.original_image.setScaledContents(True)  
         self.filtered_image.setScaledContents(True)
@@ -120,20 +117,30 @@ class MainApp(QtWidgets.QMainWindow, ui):
 
             match value:
                 case 1:
-                    q_image, self.image = self.process_and_store_grayscale(file_path)  # Get QImage & NumPy array
+                    q_image, self.image = self.process_and_store_image(file_path)  
                     self.original_image.setPixmap(QPixmap.fromImage(q_image))
-                    self.filtered_image.setPixmap(QPixmap.fromImage(q_image))
+                    try:
+                        edge_image = EdgeDetector.apply_edge_detection(
+                            self.image,  
+                            'canny', 
+                            sigma=1.0,  #default sigma
+                            low_thresh_ratio=0.05,  #default T_low
+                            high_thresh_ratio=0.15  #default T_high
+                        )
+                        self.filtered_image.setPixmap(QPixmap.fromImage(edge_image))
+                    except Exception as e:
+                        print(f"Error applying edge detection: {e}")
+                        self.filtered_image.setPixmap(QPixmap.fromImage(q_image))
 
                 case 2:
-                    self.q_image, self.image = self.process_and_store_grayscale(file_path)  
+                    self.q_image, self.image = self.process_and_store_image(file_path)  
                     self.inputImage_hough.setPixmap(QPixmap.fromImage(self.q_image))
                     self.resultImage_hough.setPixmap(QPixmap.fromImage(self.q_image))
                     self.clear_hough()
                 case 3:
-                    q_image, self.image = self.process_and_store_grayscale(file_path)  
+                    q_image, self.image = self.process_and_store_image(file_path)  
                     self.inputImage_snake.setPixmap(QPixmap.fromImage(q_image))
                     self.active_contour_widget.set_image(self.image)
-
 
             # Set scaled contents for each QLabel only once
             self.original_image.setScaledContents(True)
@@ -142,9 +149,6 @@ class MainApp(QtWidgets.QMainWindow, ui):
             self.resultImage_hough.setScaledContents(True)
             self.inputImage_snake.setScaledContents(True)
 
-
-
-                            
         print("upload")
 
     def downloadImage(self):
@@ -210,28 +214,17 @@ class MainApp(QtWidgets.QMainWindow, ui):
         except ValueError as ve:
             print(f"Error: {ve}")
 
-    def process_and_store_grayscale(self, file_path):
-       
+    def process_and_store_image(self, file_path):
+        # Load image and keep original color
         original_image = Image.open(file_path).convert("RGB")
         img_array = np.array(original_image)
-
-        # Convert to grayscale using standard formula
-        grayscale_values = (
-            0.299 * img_array[:, :, 0] +
-            0.587 * img_array[:, :, 1] +
-            0.114 * img_array[:, :, 2]
-        )
-        grayscale_array = grayscale_values.astype(np.uint8)
-
-        # Convert NumPy grayscale array to QImage
-        height, width = grayscale_array.shape
-        bytes_per_line = width
-        q_image = QImage(grayscale_array.data, width, height, bytes_per_line, QImage.Format_Grayscale8)
         
-
-        return q_image, grayscale_array 
-
-
+        # Convert PIL image to QImage
+        height, width, channels = img_array.shape
+        bytes_per_line = channels * width
+        q_image = QImage(img_array.data, width, height, bytes_per_line, QImage.Format_RGB888)
+        
+        return q_image, img_array
 
     def convert_numpy_to_qimage(self, numpy_image):
         """
@@ -249,6 +242,7 @@ class MainApp(QtWidgets.QMainWindow, ui):
 
     def handleRadio(self, label):
         self.label = label
+        self.worker.update_label(self.label)
 
     def handleHough(self):
         if self.label == "lines":
@@ -259,14 +253,13 @@ class MainApp(QtWidgets.QMainWindow, ui):
             # To change the UI labels
             self.worker.update_label("lines")
             
-            lowThreshold, highThreshold, votes = self.worker.get_slider_values()
+            lowThreshold, highThreshold, votes,_ = self.worker.get_slider_values()
             result_image = Hough.detect_lines(self.image, lowThreshold, highThreshold, votes)
 
         elif self.label == "circles":
             self.worker.update_label("circles")
-            minRadius, maxRadius, _ = self.worker.get_slider_values()
+            minRadius, maxRadius, _, _ = self.worker.get_slider_values()
             result_image = Hough.hough_circles(self.image, min_radius=minRadius, max_radius=maxRadius)
-            # result_image = Hough.detect_circles("/data_sets/Circles.jpg")
             
         elif self.label == "ellipses":
             self.worker.update_label("ellipses")
@@ -282,8 +275,6 @@ class MainApp(QtWidgets.QMainWindow, ui):
         self.worker.clear()
         self.inputImage_hough.setPixmap(QPixmap.fromImage(self.q_image))
         self.resultImage_hough.setPixmap(QPixmap.fromImage(self.q_image))
-
-    
 
 if __name__ == "__main__":
     app = QtWidgets.QApplication(sys.argv)
