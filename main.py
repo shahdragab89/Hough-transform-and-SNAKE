@@ -248,6 +248,7 @@ class MainApp(QtWidgets.QMainWindow, ui):
 
     def handleRadio(self, label):
         self.label = label
+        self.worker.update_label(self.label)
 
     def handleHough(self):
         if self.label == "lines":

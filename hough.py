@@ -1,6 +1,7 @@
 import cv2
 import numpy as np
 from edgedetectors import EdgeDetector
+from filters import FilterProcessor
 
 class Hough:
     @staticmethod
@@ -19,8 +20,7 @@ class Hough:
         else:
             gray = image.copy()  
 
-        # Apply Canny edge detection (merge with baty!!)  ------>
-        img = cv2.GaussianBlur(gray, (5, 5), 1.5)
+        img = FilterProcessor.gaussian_filter(gray, 5, 1.5)
         edges = cv2.Canny(img, low_threshold, high_threshold)
 
         # Apply Hough Line Transform
