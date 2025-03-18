@@ -3,6 +3,7 @@ from PyQt5.QtGui import QImage
 from scipy.ndimage import gaussian_filter, maximum_filter, binary_dilation
 
 class EdgeDetector:
+    result = None  # Class-level variable for hough line
     @staticmethod
     def apply_kernel(image, kernel):
         #get dimensions of image, kernel 
@@ -61,6 +62,7 @@ class EdgeDetector:
         
         height, width = result.shape
         bytes_per_line = width
+        EdgeDetector.result = result
         return QImage(result.data, width, height, bytes_per_line, QImage.Format_Grayscale8)
 
 

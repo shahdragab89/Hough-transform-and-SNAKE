@@ -15,22 +15,32 @@ class Hough:
             print("Error: Image is None.")
             return None
         
+        colored_image = image.copy()
+        correct_color = cv2.cvtColor(colored_image, cv2.COLOR_BGR2RGB)
+        
         if len(image.shape) == 3:
             gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
         else:
             gray = image.copy()  
 
         img = FilterProcessor.gaussian_filter(gray, 5, 1.5)
-        edges = cv2.Canny(img, low_threshold, high_threshold)
+        qimage_canny = EdgeDetector.apply_edge_detection(
+                img, 
+                'canny', 
+                sigma=1,
+                low_thresh_ratio=float(low_threshold/1000),
+                high_thresh_ratio=float(high_threshold/1000)
+            )
+        edges = EdgeDetector.result
 
         # Apply Hough Line Transform
         lines = Hough.hough_lines(edges, 1, np.pi / 180, votes)
-        output_image = cv2.cvtColor(gray, cv2.COLOR_GRAY2BGR) 
+        # output_image = cv2.cvtColor(gray, cv2.COLOR_GRAY2BGR) 
 
         # Draw the detected lines on the image
         if lines is None:
             print("No lines detected.")
-            return output_image
+            return correct_color
 
         for line in lines:
             rho, theta = line[0]
@@ -42,9 +52,9 @@ class Hough:
             y1 = int(y0 + 1000 * (a))
             x2 = int(x0 - 1000 * (-b))
             y2 = int(y0 - 1000 * (a))
-            cv2.line(output_image, (x1, y1), (x2, y2), (0, 255, 0), 2)
+            cv2.line(correct_color, (x1, y1), (x2, y2), (0, 255, 0), 2)
 
-        return output_image
+        return correct_color
     
 
     @staticmethod
