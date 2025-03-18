@@ -203,46 +203,77 @@ class Hough:
 
 
     @staticmethod
+    def fit_ellipse(points):
+        """
+        Fit an ellipse to a set of points using mathematical computation.
+        :param points: Contour points (Nx2 numpy array)
+        :return: (center_x, center_y, major_axis, minor_axis, angle) of the ellipse
+        """
+        if len(points) < 5:
+            return None  # Not enough points to fit an ellipse
+
+        # Compute centroid (mean of points)
+        centroid = np.mean(points, axis=0)
+        x_c, y_c = centroid
+
+        # Center the points around the centroid
+        centered_points = points - centroid
+
+        # Compute the covariance matrix
+        cov_matrix = np.cov(centered_points.T)
+
+        # Eigenvalue decomposition (gives major and minor axes)
+        eigenvalues, eigenvectors = np.linalg.eig(cov_matrix)
+
+        # Major axis = sqrt of largest eigenvalue, Minor axis = sqrt of smallest
+        major_axis_length = 2 * np.sqrt(max(eigenvalues))
+        minor_axis_length = 2 * np.sqrt(min(eigenvalues))
+
+        # Orientation (angle in degrees) = arctan of eigenvector direction
+        angle = np.degrees(np.arctan2(eigenvectors[0, 1], eigenvectors[0, 0]))
+
+        return (x_c, y_c), (major_axis_length, minor_axis_length), angle
+
+    @staticmethod
     def hough_ellipses(image, low_threshold, high_threshold, min_axis, max_axis):
         """
-        Detect ellipses in an image using edge detection and RANSAC-based ellipse fitting.
+        Detect ellipses in a colored image while keeping the result in color.
         
-        :param image: Input image
+        :param image: Input color image (BGR)
         :param low_threshold: Lower threshold for edge detection
         :param high_threshold: Upper threshold for edge detection
         :param min_axis: Minimum axis length for valid ellipses
         :param max_axis: Maximum axis length for valid ellipses
-        :return: Image with detected ellipses drawn
+        :return: Image with detected ellipses drawn in color
         """
         if image is None:
             print("Error: Image is None.")
             return None
 
-        # Convert to grayscale if needed
-        if len(image.shape) == 3:
-            gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
-        else:
-            gray = image.copy()
+        if len(image.shape) == 2:
+            print("Error: Input image is grayscale, expected a colored image.")
+            return None
 
-        # Apply Gaussian blur
+        output_image = image.copy()
+
+        # Convert to grayscale for edge detection
+        gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
         blurred = cv2.GaussianBlur(gray, (5, 5), 1.5)
-
-        # Apply Canny edge detection
         edges = cv2.Canny(blurred, low_threshold, high_threshold)
 
         # Find contours
         contours, _ = cv2.findContours(edges, cv2.RETR_LIST, cv2.CHAIN_APPROX_SIMPLE)
 
-        # Convert grayscale image to BGR for displaying results
-        output_image = cv2.cvtColor(gray, cv2.COLOR_GRAY2BGR)
-
         for contour in contours:
             if len(contour) >= 5:  # Ellipse fitting requires at least 5 points
-                ellipse = cv2.fitEllipse(contour)
-                (x, y), (major_axis, minor_axis), angle = ellipse
+                contour_points = contour[:, 0, :]  # Extract x, y coordinates
 
-                # Check if the detected ellipse meets axis constraints
-                if min_axis <= major_axis <= max_axis and min_axis <= minor_axis <= max_axis:
-                    cv2.ellipse(output_image, ellipse, (0, 255, 0), 2)  # Draw ellipse
+                ellipse = Hough.fit_ellipse(contour_points)
+                if ellipse:
+                    (x, y), (major_axis, minor_axis), angle = ellipse
+
+                    # Check ellipse constraints
+                    if min_axis <= major_axis <= max_axis and min_axis <= minor_axis <= max_axis:
+                        cv2.ellipse(output_image, ((x, y), (major_axis, minor_axis), angle), (0, 255, 0), 2)  # Draw ellipse
 
         return output_image
