@@ -3,6 +3,13 @@ from PyQt5.QtGui import QPixmap, QImage
 from scipy.ndimage import gaussian_gradient_magnitude
 import numpy as np
 
+def gaussian_kernel(size, sigma=1.0):
+    
+    ax = np.linspace(-(size // 2), size // 2, size)
+    xx, yy = np.meshgrid(ax, ax)
+    kernel = np.exp(-(xx**2 + yy**2) / (2.0 * sigma**2))
+    return kernel / np.sum(kernel)
+
 class ActiveContourWidget:
     def __init__(self, ui):
         self.ui = ui
@@ -60,10 +67,43 @@ class ActiveContourWidget:
         self.ui.area_label.setText("0")
         self.ui.perimeter_label.setText("0")  
     
-    def compute_edge_map(self):
-        blurred = gaussian_gradient_magnitude(self.image.astype(float), sigma=1.5)
-        self.edge_map = blurred / blurred.max()
+    # def compute_edge_map(self):
+    #     blurred = gaussian_gradient_magnitude(self.image.astype(float), sigma=1.5)
+    #     self.edge_map = blurred / blurred.max()
+
+    def convolve(self, image, kernel):
+        kernel_size = kernel.shape[0]
+        pad_size = kernel_size // 2
+        padded_image = np.pad(image, pad_size, mode='reflect')
+        output = np.zeros_like(image)
+
+        for i in range(image.shape[0]):
+            for j in range(image.shape[1]):
+                region = padded_image[i:i+kernel_size, j:j+kernel_size]
+                output[i, j] = np.sum(region * kernel)
         
+        return output
+
+    def compute_edge_map(self):
+        if self.image is None:
+            return
+        
+        sigma = 1.5  
+        kernel_size = int(6 * sigma) | 1  
+
+        gaussian_filter = gaussian_kernel(kernel_size, sigma)
+        smoothed = self.convolve(self.image.astype(float), gaussian_filter)
+
+        gx = np.zeros_like(smoothed)
+        gy = np.zeros_like(smoothed)
+
+        gx[:, :-1] = smoothed[:, 1:] - smoothed[:, :-1]  
+        gy[:-1, :] = smoothed[1:, :] - smoothed[:-1, :] 
+
+        gradient_magnitude = np.sqrt(gx**2 + gy**2)
+
+        self.edge_map = gradient_magnitude / gradient_magnitude.max()
+
     def draw_initial_contour(self):
         if self.image is None:
             return
