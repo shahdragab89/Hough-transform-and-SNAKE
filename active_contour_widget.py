@@ -1,5 +1,6 @@
 from PyQt5 import QtWidgets, QtGui, QtCore
 from PyQt5.QtGui import QPixmap, QImage
+from scipy.ndimage import gaussian_gradient_magnitude
 import numpy as np
 
 class ActiveContourWidget:
@@ -11,7 +12,6 @@ class ActiveContourWidget:
         self.alpha = 1.0
         self.beta = 1.0
         self.gamma = 1.0
-        self.balloon = 0.3
         self.iterations = 100
         self.num_points = 100
         self.edge_map = None
@@ -20,9 +20,9 @@ class ActiveContourWidget:
         self.ui.radius_spinBox.setMaximum(500)  
         self.ui.alpha_slider.setMaximum(200)   
         self.ui.beta_slider.setMaximum(200)     
-        self.ui.gamma_slider.setMaximum(200)    
-        self.ui.iteration_slider.setMaximum(500)  
-        self.ui.contour_points_slider.setMaximum(500)  
+        self.ui.gamma_slider.setMaximum(300)    
+        self.ui.iteration_slider.setMaximum(1000)  
+        self.ui.contour_points_slider.setMaximum(700)  
         
         # Connect UI elements
         self.ui.snakeApply_button.clicked.connect(self.apply_active_contour)
@@ -48,19 +48,22 @@ class ActiveContourWidget:
         self.ui.contour_points_label.setText(f"{self.num_points}")
     
     def set_image(self, image):
-        self.image = image
+        if len(image.shape) == 3 and image.shape[2] == 3: 
+            # if rgb then apply grayscale conversion formula
+            self.image = (0.2989 * image[:, :, 0] + 0.5870 * image[:, :, 1] + 0.1140 * image[:, :, 2]).astype(np.uint8)
+        else:
+            self.image = image  
+
         self.compute_edge_map()
         self.draw_initial_contour()
         self.ui.resultImage_snake.clear()
         self.ui.area_label.setText("0")
-        self.ui.perimeter_label.setText("0")
-
-
-    def compute_edge_map(self):
-        gx, gy = np.gradient(self.image.astype(float))
-        gradient_magnitude = np.sqrt(gx**2 + gy**2)
-        self.edge_map = gradient_magnitude / gradient_magnitude.max()  
+        self.ui.perimeter_label.setText("0")  
     
+    def compute_edge_map(self):
+        blurred = gaussian_gradient_magnitude(self.image.astype(float), sigma=1.5)
+        self.edge_map = blurred / blurred.max()
+        
     def draw_initial_contour(self):
         if self.image is None:
             return
@@ -93,15 +96,25 @@ class ActiveContourWidget:
         height, width, channel = array.shape
         bytes_per_line = channel * width
         return QImage(array.data, width, height, bytes_per_line, QImage.Format_RGB888)
-    
+
+    def reset_contour(self):
+        self.draw_initial_contour()
+        self.ui.resultImage_snake.clear()
+        self.ui.area_label.setText("0")
+        self.ui.perimeter_label.setText("0")
+        
     def apply_active_contour(self):
         if self.image is None or self.contour is None:
             return
-        
+
+        self.reset_contour()
+
         for _ in range(self.iterations):
             self.contour = self.update_contour(self.contour)
-            self.display_result_image()
-            self.calculate_area_perimeter()
+        
+        self.chain_code = self.compute_chain_code(self.contour)
+        self.display_result_image()
+        self.calculate_area_perimeter()
     
     def update_contour(self, contour):
         new_contour = np.copy(contour)
@@ -115,22 +128,15 @@ class ActiveContourWidget:
                 for dy in [-1, 0, 1]:
                     new_point = contour[i] + np.array([dx, dy])
 
-                    # Elasticity Energy
                     elasticity_energy = self.alpha * ((new_point[0] - contour[(i-1) % N][0])**2 + 
                                                       (new_point[1] - contour[(i-1) % N][1])**2)
 
-                    # Smoothness Energy
                     smoothness_energy = self.beta * (((contour[(i+1) % N][0] - 2 * new_point[0] + contour[(i-1) % N][0])**2) + 
                                                      ((contour[(i+1) % N][1] - 2 * new_point[1] + contour[(i-1) % N][1])**2))
 
-                    # External Energy
                     external_energy = -self.gamma * self.get_pixel_intensity(new_point)
 
-                    # Balloon Force 
-                    balloon_force = self.balloon * (1 if self.balloon > 0 else -1)
-
-                    # Total Energy
-                    total_energy = elasticity_energy + smoothness_energy + external_energy + balloon_force
+                    total_energy = elasticity_energy + smoothness_energy + external_energy 
 
                     if total_energy < min_energy:
                         min_energy = total_energy
@@ -138,6 +144,17 @@ class ActiveContourWidget:
 
             new_contour[i] = best_point
         return new_contour
+
+    def compute_chain_code(self, contour):
+        directions = {(0, 1): '0', (1, 1): '1', (1, 0): '2', (1, -1): '3', (0, -1): '4', (-1, -1): '5', (-1, 0): '6', (-1, 1): '7'}
+        chain_code = ""
+        for i in range(len(contour) - 1):
+            dx = contour[i+1][0] - contour[i][0]
+            dy = contour[i+1][1] - contour[i][1]
+            direction = directions.get((np.sign(dx), np.sign(dy)), "")
+            chain_code += direction
+        return chain_code
+
 
     def get_pixel_intensity(self, point):
         x, y = point
@@ -173,7 +190,6 @@ class ActiveContourWidget:
         self.ui.area_label.setText(f"{area:.1f}")
         self.ui.perimeter_label.setText(f"{perimeter:.1f}")
 
-    
     def update_radius(self, value):
         self.radius = value
         self.ui.radius_spinBox.setValue(self.radius)
