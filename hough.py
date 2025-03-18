@@ -110,7 +110,7 @@ class Hough:
         # Apply Gaussian Blur and Canny Edge Detection
         # img = cv2.GaussianBlur(img, (5, 5), 1.5)
         img = FilterProcessor.gaussian_filter(img, 5, 1.5)
-        img = cv2.Canny(img, 100, 200)
+        img = cv2.Canny(img, 50, 150)
 
         # Image dimensions
         (M, N) = img.shape
@@ -194,8 +194,8 @@ class Hough:
         # Apply optimized detection
         circles = Hough.detectCircles(
             src, 
-            threshold=15,  # Increased from 8 to 15 to reduce false positives
-            region=10,     # Decreased from 15 to 10 for better accuracy
+            threshold=13,  # Increased from 8 to 15 to reduce false positives
+            region=5,     # Decreased from 15 to 10 for better accuracy
             radius=[max_radius, min_radius]
         )
 
