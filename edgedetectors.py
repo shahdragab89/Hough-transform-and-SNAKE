@@ -34,19 +34,28 @@ class EdgeDetector:
         if not isinstance(image, np.ndarray):
             raise TypeError("Expected an image as a NumPy array")
         
-        # Convert img to grayscale if needed
-        if len(image.shape) == 3 and image.shape[2] == 3:
-            img = np.dot(image[...,:3], [0.2989, 0.5870, 0.1140])
-        else:
-            img = image.copy()
+        # No conversion to grayscale - use the image as is
+        img = image.copy()
         
-        # Normalize to 0-255 
-        img = ((img - img.min()) / (img.max() - img.min()) * 255).astype(np.uint8)
+        # Normalize to 0-255 if needed
+        if img.max() > 0:  # Avoid division by zero
+            img = ((img - img.min()) / (img.max() - img.min()) * 255).astype(np.uint8)
             
         result = None
         
         if method.lower() == 'canny':
-            result = EdgeDetector.canny(img, sigma, low_thresh_ratio, high_thresh_ratio)
+            # Process each channel separately if it's a color image
+            if len(img.shape) == 3 and img.shape[2] >= 3:
+                # Initialize result with same shape as input but with only one channel
+                result = np.zeros((img.shape[0], img.shape[1]), dtype=np.uint8)
+                
+                # Apply Canny to each channel and combine results
+                for i in range(3):  # Process RGB channels
+                    channel_result = EdgeDetector.canny(img[:,:,i], sigma, low_thresh_ratio, high_thresh_ratio)
+                    # Combine results with logical OR
+                    result = np.maximum(result, channel_result)
+            else:
+                result = EdgeDetector.canny(img, sigma, low_thresh_ratio, high_thresh_ratio)
         else:
             raise ValueError(f"Unknown edge detection method: {method}")
         

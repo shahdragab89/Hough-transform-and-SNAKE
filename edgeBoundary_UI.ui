@@ -73,7 +73,7 @@ QTabBar::tab:!selected {
       </property>
       <widget class="QWidget" name="tab">
        <attribute name="title">
-        <string>Filter</string>
+        <string>Canny Detector</string>
        </attribute>
        <layout class="QGridLayout" name="gridLayout_3">
         <item row="0" column="0" colspan="2">
