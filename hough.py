@@ -2,6 +2,7 @@ import cv2
 import numpy as np
 from edgedetectors import EdgeDetector
 from filters import FilterProcessor
+from scipy.spatial import ConvexHull
 
 class Hough:
     @staticmethod
@@ -89,16 +90,6 @@ class Hough:
         lines = [(rhos[rho_idx], thetas[theta_idx]) for rho_idx, theta_idx in line_indices]
         
         return np.array(lines).reshape(-1, 1, 2)  
-    
-
-    # @staticmethod
-    # def enhance_contrast(image):
-    #     lab = cv2.cvtColor(image, cv2.COLOR_BGR2LAB)
-    #     l, a, b = cv2.split(lab)
-    #     clahe = cv2.createCLAHE(clipLimit=3.0, tileGridSize=(8,8))
-    #     l = clahe.apply(l)
-    #     enhanced_lab = cv2.merge((l, a, b))
-    #     return cv2.cvtColor(enhanced_lab,cv2.COLOR_LAB2BGR)
 
 
     @staticmethod
@@ -174,19 +165,29 @@ class Hough:
 
         return B[:, R_max:-R_max, R_max:-R_max]
 
+
     @staticmethod
     def displayCircles(A, img):
         """
-        Draw detected circles on the original image.
+        Draw detected circles on the original image, ensuring the output is in RGB format.
 
         :param A: Accumulator array containing detected circles
         :param img: Original image
-        :return: Image with detected circles drawn
+        :return: Image with detected circles drawn in RGB format
         """
+        if img is None:
+            print("Error: Image is None.")
+            return None
+
+        # Copy the original image and convert to RGB
+        colored_image = img.copy()
+        correct_color = cv2.cvtColor(colored_image, cv2.COLOR_BGR2RGB)
+
         circleCoordinates = np.argwhere(A)  # Extract circle information
         for r, x, y in circleCoordinates:
-            cv2.circle(img, (y, x), r, color=(0, 255, 0), thickness=2)
-        return img
+            cv2.circle(correct_color, (y, x), r, color=(0, 255, 0), thickness=2)
+
+        return correct_color  # Return the properly formatted image
 
 
     @staticmethod
@@ -212,49 +213,79 @@ class Hough:
         return Hough.displayCircles(circles, src)
 
 
+
     @staticmethod
-    def fit_ellipse(points):
+    def fit_ellipse_manual(points, max_iter=100, tolerance=1e-6):
         """
-        Fit an ellipse to a set of points using mathematical computation.
+        Fit an ellipse to a set of points using an iterative least squares approach.
         :param points: Contour points (Nx2 numpy array)
-        :return: (center_x, center_y, major_axis, minor_axis, angle) of the ellipse
+        :param max_iter: Maximum iterations for convergence
+        :param tolerance: Convergence threshold
+        :return: (center_x, center_y), (major_axis, minor_axis), angle
         """
         if len(points) < 5:
             return None  # Not enough points to fit an ellipse
 
-        # Compute centroid (mean of points)
+        # Compute centroid
         centroid = np.mean(points, axis=0)
         x_c, y_c = centroid
 
-        # Center the points around the centroid
-        centered_points = points - centroid
+        # Shift points to centroid
+        shifted_points = points - centroid
 
-        # Compute the covariance matrix
-        cov_matrix = np.cov(centered_points.T)
+        # Compute covariance matrix
+        cov_matrix = np.cov(shifted_points.T)
 
-        # Eigenvalue decomposition (gives major and minor axes)
+        # Eigen decomposition (for axes and orientation)
         eigenvalues, eigenvectors = np.linalg.eig(cov_matrix)
 
-        # Major axis = sqrt of largest eigenvalue, Minor axis = sqrt of smallest
-        major_axis_length = 2 * np.sqrt(max(eigenvalues))
-        minor_axis_length = 2 * np.sqrt(min(eigenvalues))
+        # Ensure positive eigenvalues
+        eigenvalues = np.abs(eigenvalues)
 
-        # Orientation (angle in degrees) = arctan of eigenvector direction
-        angle = np.degrees(np.arctan2(eigenvectors[0, 1], eigenvectors[0, 0]))
+        # Identify major and minor axes
+        major_index = np.argmax(eigenvalues)
+        minor_index = 1 - major_index
+
+        # --- FIX: Scale the axes properly ---
+        scaling_factor = 2.5  # Adjust this to fit the outer boundary better
+        major_axis_length = scaling_factor * np.sqrt(eigenvalues[major_index])
+        minor_axis_length = scaling_factor * np.sqrt(eigenvalues[minor_index])
+
+        # Ensure major > minor
+        if major_axis_length < minor_axis_length:
+            major_axis_length, minor_axis_length = minor_axis_length, major_axis_length
+
+        # Get ellipse orientation
+        major_eigenvector = eigenvectors[:, major_index]
+        angle = np.degrees(np.arctan2(major_eigenvector[1], major_eigenvector[0]))
+
+        # --- FIX: Use convex hull to refine ellipse fitting ---
+        hull = ConvexHull(points)
+        hull_points = points[hull.vertices]  # Get outer boundary points
+
+        # Compute max distances from centroid to outer points for better approximation
+        distances = np.linalg.norm(hull_points - centroid, axis=1)
+        max_distance = np.max(distances)
+
+        # Adjust ellipse size based on max distance
+        major_axis_length = max(major_axis_length, 2 * max_distance)
+        minor_axis_length = max(minor_axis_length, 2 * max_distance * 0.6)  # Keep proportion
 
         return (x_c, y_c), (major_axis_length, minor_axis_length), angle
+
+
 
     @staticmethod
     def hough_ellipses(image, low_threshold, high_threshold, min_axis, max_axis):
         """
-        Detect ellipses in a colored image while keeping the result in color.
-        
-        :param image: Input color image (BGR)
+        Detect ellipses in a colored image while keeping the result in color (RGB format).
+
+        :param image: Input color image (RGB)
         :param low_threshold: Lower threshold for edge detection
         :param high_threshold: Upper threshold for edge detection
         :param min_axis: Minimum axis length for valid ellipses
         :param max_axis: Maximum axis length for valid ellipses
-        :return: Image with detected ellipses drawn in color
+        :return: Image with detected ellipses drawn in RGB format
         """
         if image is None:
             print("Error: Image is None.")
@@ -264,10 +295,12 @@ class Hough:
             print("Error: Input image is grayscale, expected a colored image.")
             return None
 
-        output_image = image.copy()
+        # Copy the original image and convert to RGB
+        colored_image = image.copy()
+        correct_color = cv2.cvtColor(colored_image, cv2.COLOR_BGR2RGB)
 
         # Convert to grayscale for edge detection
-        gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+        gray = cv2.cvtColor(colored_image, cv2.COLOR_BGR2GRAY)
         blurred = cv2.GaussianBlur(gray, (5, 5), 1.5)
         edges = cv2.Canny(blurred, low_threshold, high_threshold)
 
@@ -278,12 +311,12 @@ class Hough:
             if len(contour) >= 5:  # Ellipse fitting requires at least 5 points
                 contour_points = contour[:, 0, :]  # Extract x, y coordinates
 
-                ellipse = Hough.fit_ellipse(contour_points)
+                ellipse = Hough.fit_ellipse_manual(contour_points)
                 if ellipse:
                     (x, y), (major_axis, minor_axis), angle = ellipse
 
                     # Check ellipse constraints
                     if min_axis <= major_axis <= max_axis and min_axis <= minor_axis <= max_axis:
-                        cv2.ellipse(output_image, ((x, y), (major_axis, minor_axis), angle), (0, 255, 0), 2)  # Draw ellipse
+                        cv2.ellipse(correct_color, ((x, y), (major_axis, minor_axis), angle), (0, 255, 0), 2)  # Draw ellipse
 
-        return output_image
+        return correct_color  # Return the correctly formatted image

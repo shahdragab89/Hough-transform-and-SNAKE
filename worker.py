@@ -71,7 +71,7 @@ class Worker:
             self.main_window.hough_slider1.setRange(0, 255)  # Set range
             self.main_window.hough_slider2.setRange(0, 255)
             self.main_window.hough_slider3.setRange(10, 100)
-            self.main_window.hough_slider4.setRange(50, 300)
+            self.main_window.hough_slider4.setRange(50, 500)
 
     def clear(self):
         self.main_window.hough_slider1.setValue(0)  
