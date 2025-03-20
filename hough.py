@@ -25,14 +25,15 @@ class Hough:
             gray = image.copy()  
 
         img = FilterProcessor.gaussian_filter(gray, 5, 1.5)
-        qimage_canny = EdgeDetector.apply_edge_detection(
-                img, 
-                'canny', 
-                sigma=1,
-                low_thresh_ratio=float(low_threshold/1000),
-                high_thresh_ratio=float(high_threshold/1000)
-            )
-        edges = EdgeDetector.result
+        # qimage_canny = EdgeDetector.apply_edge_detection(
+        #         img, 
+        #         'canny', 
+        #         sigma=1,
+        #         low_thresh_ratio=float(low_threshold/1000),
+        #         high_thresh_ratio=float(high_threshold/1000)
+        #     )
+        # edges_our_canny = EdgeDetector.result
+        edges = cv2.Canny(img, low_threshold, high_threshold)
 
         # Apply Hough Line Transform
         lines = Hough.hough_lines(edges, 1, np.pi / 180, votes)
@@ -111,6 +112,7 @@ class Hough:
         # Apply Gaussian Blur and Canny Edge Detection
         # img = cv2.GaussianBlur(img, (5, 5), 1.5)
         img = FilterProcessor.gaussian_filter(img, 5, 1.5)
+        # img = EdgeDetector.apply_edge_detection(img, method='canny', low_thresh_ratio=50/255, high_thresh_ratio=150/255)
         img = cv2.Canny(img, 50, 150)
 
         # Image dimensions
@@ -301,8 +303,14 @@ class Hough:
 
         # Convert to grayscale for edge detection
         gray = cv2.cvtColor(colored_image, cv2.COLOR_BGR2GRAY)
-        blurred = cv2.GaussianBlur(gray, (5, 5), 1.5)
+        # blurred = cv2.GaussianBlur(gray, (5, 5), 1.5)
+        blurred = FilterProcessor.gaussian_filter(gray, 5, 1.5)
         edges = cv2.Canny(blurred, low_threshold, high_threshold)
+
+        # edges = EdgeDetector.apply_edge_detection(blurred, method='canny', low_thresh_ratio=low_threshold/255, high_thresh_ratio=high_threshold/255)
+        print(edges)
+        print(type(edges))
+
 
         # Find contours
         contours, _ = cv2.findContours(edges, cv2.RETR_LIST, cv2.CHAIN_APPROX_SIMPLE)
