@@ -25,25 +25,16 @@ class Hough:
             gray = image.copy()  
 
         img = FilterProcessor.gaussian_filter(gray, 5, 1.5)
-        # qimage_canny = EdgeDetector.apply_edge_detection(
-        #         img, 
-        #         'canny', 
-        #         sigma=1,
-        #         low_thresh_ratio=float(low_threshold/1000),
-        #         high_thresh_ratio=float(high_threshold/1000)
-        #     )
-        # edges_our_canny = EdgeDetector.result
         edges = cv2.Canny(img, low_threshold, high_threshold)
 
         # Apply Hough Line Transform
         lines = Hough.hough_lines(edges, 1, np.pi / 180, votes)
-        # output_image = cv2.cvtColor(gray, cv2.COLOR_GRAY2BGR) 
 
-        # Draw the detected lines on the image
         if lines is None:
             print("No lines detected.")
             return correct_color
 
+        # To draw the detected lines on the image
         for line in lines:
             rho, theta = line[0]
             a = np.cos(theta)
@@ -54,21 +45,13 @@ class Hough:
             y1 = int(y0 + 1000 * (a))
             x2 = int(x0 - 1000 * (-b))
             y2 = int(y0 - 1000 * (a))
-            cv2.line(correct_color, (x1, y1), (x2, y2), (0, 255, 0), 2)
+            correct_color = Hough.draw_line(correct_color, x1, y1, x2, y2, (0, 255, 0), 10)
 
         return correct_color
     
 
     @staticmethod
     def hough_lines(edges, rho_resolution=1, theta_resolution=np.pi/180, threshold=100):
-        """
-        Custom implementation of the Hough Transform for line detection.
-        :param edges: Binary edge image (from Canny edge detection)
-        :param rho_resolution: Resolution of the rho axis (default 1 pixel)
-        :param theta_resolution: Resolution of the theta axis (default 1 degree in radians)
-        :param threshold: Minimum votes required to consider a line
-        :return: List of (rho, theta) values of detected lines
-        """
         height, width = edges.shape
         diag_len = int(np.sqrt(height**2 + width**2)) 
         rhos = np.arange(-diag_len, diag_len, rho_resolution)
@@ -86,11 +69,36 @@ class Hough:
                 rho = int(x * np.cos(theta) + y * np.sin(theta)) + diag_len  
                 accumulator[rho, theta_idx] += 1
         
-        # Extract lines that pass the threshold
+        # FInd the lines that are bigger than the threshold
         line_indices = np.argwhere(accumulator >= threshold)
         lines = [(rhos[rho_idx], thetas[theta_idx]) for rho_idx, theta_idx in line_indices]
         
         return np.array(lines).reshape(-1, 1, 2)  
+    
+    def draw_line(image, x1, y1, x2, y2, color, thickness=1):
+        dx = abs(x2 - x1)
+        dy = abs(y2 - y1)
+        sx = 1 if x1 < x2 else -1
+        sy = 1 if y1 < y2 else -1
+        err = dx - dy  
+
+        while True:
+            # Draw a pixel at (x1, y1)
+            if 0 <= x1 < image.shape[1] and 0 <= y1 < image.shape[0]:  
+                image[y1, x1] = color  
+
+            if x1 == x2 and y1 == y2:
+                break
+
+            e2 = 2 * err
+            if e2 > -dy:
+                err -= dy
+                x1 += sx
+            if e2 < dx:
+                err += dx
+                y1 += sy
+
+        return image
 
 
     @staticmethod
