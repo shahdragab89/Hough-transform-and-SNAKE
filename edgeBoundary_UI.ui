@@ -172,7 +172,7 @@ border : 2px solid #F4F5F9; </string>
                <number>2</number>
               </property>
               <item>
-               <widget class="QPushButton" name="filterUpload_button">
+               <widget class="QPushButton" name="cannyUpload_button">
                 <property name="minimumSize">
                  <size>
                   <width>100</width>
@@ -228,7 +228,7 @@ QPushButton:pressed {
                </widget>
               </item>
               <item>
-               <widget class="QPushButton" name="filterDownload_button">
+               <widget class="QPushButton" name="cannyDownload_button">
                 <property name="minimumSize">
                  <size>
                   <width>100</width>
@@ -367,7 +367,7 @@ border : 2px solid rgb(221, 221, 221); </string>
            </property>
            <layout class="QHBoxLayout" name="horizontalLayout_5">
             <item>
-             <widget class="QSlider" name="kernel_slider">
+             <widget class="QSlider" name="low_threshold_slider">
               <property name="styleSheet">
                <string notr="true">QSlider::groove:horizontal {
     border: 1px solid #999999; /* Light border */
@@ -421,7 +421,7 @@ QSlider::handle:horizontal:hover {
              </widget>
             </item>
             <item alignment="Qt::AlignHCenter|Qt::AlignVCenter">
-             <widget class="QLabel" name="kernel_label">
+             <widget class="QLabel" name="low_threshold_label">
               <property name="minimumSize">
                <size>
                 <width>30</width>
@@ -627,7 +627,7 @@ border : 2px solid rgb(221, 221, 221); </string>
            </property>
            <layout class="QHBoxLayout" name="horizontalLayout_7">
             <item>
-             <widget class="QSlider" name="mean_slider">
+             <widget class="QSlider" name="high_threshold_slider">
               <property name="styleSheet">
                <string notr="true">QSlider::groove:horizontal {
     border: 1px solid #999999; /* Light border */
@@ -675,7 +675,7 @@ QSlider::handle:horizontal:hover {
              </widget>
             </item>
             <item>
-             <widget class="QLabel" name="mean_label">
+             <widget class="QLabel" name="high_threshold_label">
               <property name="minimumSize">
                <size>
                 <width>30</width>
@@ -790,7 +790,7 @@ border : 2px solid #D1D5DB; </string>
              </property>
              <layout class="QGridLayout" name="gridLayout_5">
               <item row="0" column="0">
-               <widget class="QLabel" name="filtered_image">
+               <widget class="QLabel" name="canny_result_image">
                 <property name="styleSheet">
                  <string notr="true"/>
                 </property>

@@ -1,16 +1,11 @@
 from PyQt5 import QtWidgets
-from PyQt5.QtWidgets import QApplication, QWidget, QPushButton, QFileDialog, QLabel
+from PyQt5.QtWidgets import QFileDialog
 from PyQt5.uic import loadUiType
 from PyQt5.QtGui import QPixmap, QImage
 import sys
 from PIL import Image
 import numpy as np
-import cv2
-import random
-import os
-import matplotlib.pyplot as plt
-from PIL import Image, ImageQt
-import traceback
+from PIL import Image
 from edgedetectors import EdgeDetector
 from PyQt5.QtCore import QBuffer, QIODevice
 import PIL.ImageQt as ImageQtModule
@@ -19,12 +14,9 @@ from hough import Hough
 from PyQt5.QtGui import QImage, QPixmap
 from worker import Worker
 
-
-# Manually patch QBuffer and QIODevice into ImageQt
 ImageQtModule.QBuffer = QBuffer
 ImageQtModule.QIODevice = QIODevice
 
-# Load the UI file
 ui, _ = loadUiType("edgeBoundary_Ui.ui")
 
 class MainApp(QtWidgets.QMainWindow, ui):
@@ -36,76 +28,67 @@ class MainApp(QtWidgets.QMainWindow, ui):
         self.value = None
         self.sigma_value = 0
 
-        self.image1_original = None  # Store original image1
-        self.image2_original = None  # Store original image2
+        self.image1_original = None  # store original image1
+        self.image2_original = None  # store original image2
 
-        # Initializing Buttons 
-        self.filterUpload_button.clicked.connect(lambda: self.uploadImage(1))
-        self.filterDownload_button.clicked.connect(self.downloadImage)
+        self.cannyUpload_button.clicked.connect(lambda: self.uploadImage(1))
+        self.cannyDownload_button.clicked.connect(self.downloadImage)
         self.houghUpload_button.clicked.connect(lambda: self.uploadImage(2))
         self.snakeUpload_button.clicked.connect(lambda: self.uploadImage(3)) 
         self.houghClear_button.clicked.connect(self.clear_hough)
         self.houghApply_button.clicked.connect(self.handleHough)
 
-        # Initialing Radio Buttons
         self.lines_radioButton.clicked.connect(lambda: self.handleRadio("lines"))
         self.circles_radioButton.clicked.connect(lambda: self.handleRadio("circles"))
         self.ellipses_radioButton.clicked.connect(lambda: self.handleRadio("ellipses"))
 
-        # Initializing Sliders
-        self.kernel_slider.sliderReleased.connect(self.handleFilter)
-        self.sigma_slider.sliderReleased.connect(self.handleFilter)
-        self.mean_slider.sliderReleased.connect(self.handleFilter)
+        self.low_threshold_slider.sliderReleased.connect(self.handleCanny)
+        self.sigma_slider.sliderReleased.connect(self.handleCanny)
+        self.high_threshold_slider.sliderReleased.connect(self.handleCanny)
         self.frame_48.hide()
         
-        # Allow scaling of image
         self.original_image.setScaledContents(True)  
-        self.filtered_image.setScaledContents(True)
+        self.canny_result_image.setScaledContents(True)
 
-        # For sigma (0.1-10 is a good range)
-        # For sigma (0.5-5.0 is a more practical range for most images)
         self.sigma_slider.setMinimum(5)    # 0.5 after division
         self.sigma_slider.setMaximum(50)   # 5.0 after division
         self.sigma_slider.setValue(10)     # 1.0 after division (good default)
 
-        # For low threshold ratio (0.01-0.3 is more practical)
-        self.kernel_slider.setMinimum(1)   # 0.01 after division
-        self.kernel_slider.setMaximum(30)  # 0.3 after division
-        self.kernel_slider.setValue(6)     # 0.06 after division (good default)
+        self.low_threshold_slider.setMinimum(1)   # 0.01 after division
+        self.low_threshold_slider.setMaximum(30)  # 0.3 after division
+        self.low_threshold_slider.setValue(6)     # 0.06 after division (good default)
 
-        # For high threshold ratio (0.1-0.6 is more practical)
-        self.mean_slider.setMinimum(10)    # 0.1 after division
-        self.mean_slider.setMaximum(60)    # 0.6 after division
-        self.mean_slider.setValue(15)      # 0.15 after division (good default)
+        self.high_threshold_slider.setMinimum(10)    # 0.1 after division
+        self.high_threshold_slider.setMaximum(60)    # 0.6 after division
+        self.high_threshold_slider.setValue(15)      # 0.15 after division (good default)
 
         self.active_contour_widget = ActiveContourWidget(self)
-        # To change the UI labels
         self.worker = Worker(self)
 
-    def handle_kernelSlider(self):
-        # Get sigma value (divide by 10 for finer control)
+    def handle_sliders_values(self):
+        #get sigma value (divide by 10 for finer control)
         slider_value = self.sigma_slider.value()
         self.sigma_value = slider_value / 10.0
-        # Update label with descriptive text
+        #update labels with vals
         self.sigma_label.setText(f"{self.sigma_value:.1f}")
         
-        # Get low threshold value (divide by 100 for percentage)
-        slider_value = self.kernel_slider.value()
-        self.kernel_value = slider_value / 100.0
-        # Update label with descriptive text
-        self.kernel_label.setText(f"{self.kernel_value:.2f}")
+        #get t_low value (divide by 100 for %)
+        slider_value = self.low_threshold_slider.value()
+        self.low_threshold_value = slider_value / 100.0
+        #update labels with vals
+        self.low_threshold_label.setText(f"{self.low_threshold_value:.2f}")
         
-        # Get high threshold value (divide by 100 for percentage)
-        slider_value = self.mean_slider.value()
-        self.mean_value = slider_value / 100.0
-        # Update label with descriptive text
-        self.mean_label.setText(f"{self.mean_value:.2f}")
+        #get t_high value (divide by 100 for %)
+        slider_value = self.high_threshold_slider.value()
+        self.high_threshold_value = slider_value / 100.0
+        #update labels with vals
+        self.high_threshold_label.setText(f"{self.high_threshold_value:.2f}")
         
-        # Log values for debugging
+        #log values for test
         print(f"Edge detection parameters - Sigma: {self.sigma_value}, " 
-            f"Low Threshold: {self.kernel_value}, High Threshold: {self.mean_value}")
+            f"Low Threshold: {self.low_threshold_value}, High Threshold: {self.high_threshold_value}")
         
-        return [self.kernel_value, self.sigma_value, self.mean_value]
+        return [self.low_threshold_value, self.sigma_value, self.high_threshold_value]
         
     def uploadImage(self, value):
         options = QFileDialog.Options()
@@ -127,10 +110,10 @@ class MainApp(QtWidgets.QMainWindow, ui):
                             low_thresh_ratio=0.05,  #default T_low
                             high_thresh_ratio=0.15  #default T_high
                         )
-                        self.filtered_image.setPixmap(QPixmap.fromImage(edge_image))
+                        self.canny_result_image.setPixmap(QPixmap.fromImage(edge_image))
                     except Exception as e:
                         print(f"Error applying edge detection: {e}")
-                        self.filtered_image.setPixmap(QPixmap.fromImage(q_image))
+                        self.canny_result_image.setPixmap(QPixmap.fromImage(q_image))
 
                 case 2:
                     self.q_image, self.image = self.process_and_store_image(file_path)  
@@ -142,9 +125,9 @@ class MainApp(QtWidgets.QMainWindow, ui):
                     self.inputImage_snake.setPixmap(QPixmap.fromImage(q_image))
                     self.active_contour_widget.set_image(self.image)
 
-            # Set scaled contents for each QLabel only once
+            #set scaled contents for each QLabel only once
             self.original_image.setScaledContents(True)
-            self.filtered_image.setScaledContents(True)
+            self.canny_result_image.setScaledContents(True)
             self.inputImage_hough.setScaledContents(True)
             self.resultImage_hough.setScaledContents(True)
             self.inputImage_snake.setScaledContents(True)
@@ -153,12 +136,12 @@ class MainApp(QtWidgets.QMainWindow, ui):
 
     def downloadImage(self):
         if self.value is None:
-            print("No image uploaded yet. Please upload an image before downloading.")
+            print("No uploaded img, upload first!")
             return
         
-        # Mapping value to QLabel attributes
+        #map the value to QLabel attributes
         image_mapping = {
-            1: self.filtered_image,
+            1: self.canny_result_image,
             2: self.rgbGray_image,
             3: self.histogramOriginal_image,
             4: self.hyprid_image
@@ -167,12 +150,12 @@ class MainApp(QtWidgets.QMainWindow, ui):
         label = image_mapping.get(self.value)
 
         if not label or label.pixmap() is None:
-            print("No valid image found to download.")
+            print("No img found")
             return
         
         pixmap = label.pixmap()
 
-        # Open save dialog
+        #open save dialog
         options = QFileDialog.Options()
         file_path, _ = QFileDialog.getSaveFileName(self, "Save Image", "", "Images (*.png *.jpg *.bmp *.jpeg)", options=options)
         
@@ -181,25 +164,24 @@ class MainApp(QtWidgets.QMainWindow, ui):
                 pixmap.save(file_path)
                 print(f"Image saved to {file_path}")
             else:
-                print("No valid image found in QLabel.")
+                print("no QImage found")
     
-    def handleFilter(self):
+    def handleCanny(self):
         try:
             if self.image is None:
-                self.kernel_slider.setValue(3)
+                self.low_threshold_slider.setValue(3)
                 self.sigma_slider.setValue(1)
-                self.mean_slider.setValue(1)
-                raise ValueError("No image loaded. Please upload an image before applying edge detection.")
+                self.high_threshold_slider.setValue(1)
+                raise ValueError("No uploaded img, upload first!")
 
-            # Get slider values
-            self.sliderValues = self.handle_kernelSlider()
+            self.sliderValues = self.handle_sliders_values()
             
-            # Apply Canny edge detection
+            #take parameter values from sliders
             sigma = self.sigma_value
-            low_threshold_ratio = self.kernel_value  # Use kernel slider for low threshold ratio
-            high_threshold_ratio = self.mean_value  # Use mean slider for high threshold ratio
+            low_threshold_ratio = self.low_threshold_value  
+            high_threshold_ratio = self.high_threshold_value 
             
-            # Modify the EdgeDetector class to accept threshold parameters
+            #apply Canny edge detection
             q_image = EdgeDetector.apply_edge_detection(
                 self.image, 
                 'canny', 
@@ -207,19 +189,17 @@ class MainApp(QtWidgets.QMainWindow, ui):
                 low_thresh_ratio=low_threshold_ratio,
                 high_thresh_ratio=high_threshold_ratio
             )
-            
-            # Update the filtered image
-            self.filtered_image.setPixmap(QPixmap.fromImage(q_image))
+            #update canny result image
+            self.canny_result_image.setPixmap(QPixmap.fromImage(q_image))
 
         except ValueError as ve:
             print(f"Error: {ve}")
 
     def process_and_store_image(self, file_path):
-        # Load image and keep original color
         original_image = Image.open(file_path).convert("RGB")
         img_array = np.array(original_image)
         
-        # Convert PIL image to QImage
+        #convert PIL image to QImage
         height, width, channels = img_array.shape
         bytes_per_line = channels * width
         q_image = QImage(img_array.data, width, height, bytes_per_line, QImage.Format_RGB888)
@@ -227,16 +207,12 @@ class MainApp(QtWidgets.QMainWindow, ui):
         return q_image, img_array
 
     def convert_numpy_to_qimage(self, numpy_image):
-        """
-        Convert a NumPy image to QImage.
-        """
         height, width = numpy_image.shape[:2]
         
-        # Check if grayscale or color
-        if len(numpy_image.shape) == 2:  # Grayscale
+        if len(numpy_image.shape) == 2:  #grayscale
             bytes_per_line = width
             return QImage(numpy_image.data, width, height, bytes_per_line, QImage.Format_Grayscale8)
-        else:  # Color (BGR)
+        else:  #color (BGR)
             bytes_per_line = 3 * width
             return QImage(numpy_image.data, width, height, bytes_per_line, QImage.Format_RGB888).rgbSwapped()
 
@@ -249,10 +225,8 @@ class MainApp(QtWidgets.QMainWindow, ui):
             if self.image is None:
                 print("Error: Could not read the image.")
                 return
-            
-            # To change the UI labels
+        
             self.worker.update_label("lines")
-            
             lowThreshold, highThreshold, votes,_ = self.worker.get_slider_values()
             result_image = Hough.detect_lines(self.image, lowThreshold, highThreshold, votes)
 
@@ -266,8 +240,7 @@ class MainApp(QtWidgets.QMainWindow, ui):
             lowThreshold, highThreshold, minAxis, maxAxis = self.worker.get_slider_values()
             result_image = Hough.hough_ellipses(self.image, low_threshold=lowThreshold, high_threshold=highThreshold, min_axis=minAxis, max_axis=maxAxis)
 
-
-        # Convert to QImage before setting as QPixmap
+        #convert to QImage then set to QPixmap
         qimage = self.convert_numpy_to_qimage(result_image)
         self.resultImage_hough.setPixmap(QPixmap.fromImage(qimage))
 
