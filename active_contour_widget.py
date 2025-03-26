@@ -193,6 +193,8 @@ class ActiveContourWidget:
             dy = contour[i+1][1] - contour[i][1]
             direction = directions.get((np.sign(dx), np.sign(dy)), "")
             chain_code += direction
+            
+        print(chain_code) 
         return chain_code
 
 

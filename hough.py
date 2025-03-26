@@ -109,24 +109,19 @@ class Hough:
         :param img: Input image
         :param threshold: Minimum votes required to consider a valid circle
         :param region: Region around a detected circle to find maxima
-        :param radius: Range of radius values as [max_radius, min_radius]
+        :param radius: Range of radius values as [max_radius, min_radius] (all possible circle sizes)
         :return: Accumulator array indicating detected circles
         """
-        # Convert to grayscale
+
         if len(img.shape) == 3 and img.shape[2] == 3:
-            # img = Hough.enhance_contrast(img)
             img = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
 
-        # Apply Gaussian Blur and Canny Edge Detection
-        # img = cv2.GaussianBlur(img, (5, 5), 1.5)
         img = FilterProcessor.gaussian_filter(img, 5, 1.5)
         # img = EdgeDetector.apply_edge_detection(img, method='canny', low_thresh_ratio=50/255, high_thresh_ratio=150/255)
         img = cv2.Canny(img, 50, 150)
 
-        # Image dimensions
         (M, N) = img.shape
 
-        # Define radius range
         if radius is None:
             R_max = np.max((M, N))
             R_min = 3
@@ -135,34 +130,34 @@ class Hough:
 
         R = R_max - R_min
 
-        # Initialize accumulator arrays with padding to avoid overflow issues
-        A = np.zeros((R_max, M + 2 * R_max, N + 2 * R_max))
-        B = np.zeros((R_max, M + 2 * R_max, N + 2 * R_max))
+        # accumulator arrays with extra padding (+2 * R_max) to avoid overflow issues when detecting circles near image borders.
+        A = np.zeros((R_max, M + 2 * R_max, N + 2 * R_max)) #votes for the potential circles
+        B = np.zeros((R_max, M + 2 * R_max, N + 2 * R_max)) #final detected circle
 
-        # Precompute angles for circle perimeter
+
         theta = np.deg2rad(np.arange(0, 360))
         edges = np.argwhere(img)  # Get edge pixel coordinates
 
         for val in range(R):
             r = R_min + val
-            # Create a circle blueprint
             bprint = np.zeros((2 * (r + 1), 2 * (r + 1)))
-            (m, n) = (r + 1, r + 1)  # Center of the blueprint
+            (m, n) = (r + 1, r + 1)  
 
             for angle in theta:
+                # The (x, y) coordinates of a circle of radius r are calculated using cos and sin.
                 x = int(np.round(r * np.cos(angle)))
                 y = int(np.round(r * np.sin(angle)))
                 bprint[m + x, n + y] = 1
 
             constant = np.count_nonzero(bprint)
 
-            # Update accumulator array
             for x, y in edges:
-                X = [x - m + R_max, x + m + R_max]  # Compute extreme X values
-                Y = [y - n + R_max, y + n + R_max]  # Compute extreme Y values
+                X = [x - m + R_max, x + m + R_max]  
+                Y = [y - n + R_max, y + n + R_max]  
                 A[r, X[0]:X[1], Y[0]:Y[1]] += bprint
-
-            A[r][A[r] < threshold * constant / max(r, 1)] = 0  # Prevent division by zero
+            
+            # Remove low-vote circles below the threshold.
+            A[r][A[r] < threshold * constant / max(r, 1)] = 0 
 
         # Find local maxima in the accumulator
         for r, x, y in np.argwhere(A):
@@ -189,7 +184,6 @@ class Hough:
             print("Error: Image is None.")
             return None
 
-        # Copy the original image and convert to RGB
         colored_image = img.copy()
         correct_color = cv2.cvtColor(colored_image, cv2.COLOR_BGR2RGB)
 
@@ -197,7 +191,7 @@ class Hough:
         for r, x, y in circleCoordinates:
             cv2.circle(correct_color, (y, x), r, color=(0, 255, 0), thickness=2)
 
-        return correct_color  # Return the properly formatted image
+        return correct_color  
 
 
     @staticmethod
@@ -212,11 +206,10 @@ class Hough:
         """
         src = np.copy(source)
 
-        # Apply optimized detection
         circles = Hough.detectCircles(
             src, 
-            threshold=13,  # Increased from 8 to 15 to reduce false positives
-            region=5,     # Decreased from 15 to 10 for better accuracy
+            threshold=13,  
+            region=5,     
             radius=[max_radius, min_radius]
         )
 
@@ -234,7 +227,7 @@ class Hough:
         :return: (center_x, center_y), (major_axis, minor_axis), angle
         """
         if len(points) < 5:
-            return None  # Not enough points to fit an ellipse
+            return None  
 
         # Compute centroid
         centroid = np.mean(points, axis=0)
@@ -250,13 +243,13 @@ class Hough:
         eigenvalues, eigenvectors = np.linalg.eig(cov_matrix)
 
         # Ensure positive eigenvalues
-        eigenvalues = np.abs(eigenvalues)
+        eigenvalues = np.abs(eigenvalues) # variance alon each axis
 
         # Identify major and minor axes
         major_index = np.argmax(eigenvalues)
         minor_index = 1 - major_index
 
-        # --- FIX: Scale the axes properly ---
+        
         scaling_factor = 2.5  # Adjust this to fit the outer boundary better
         major_axis_length = scaling_factor * np.sqrt(eigenvalues[major_index])
         minor_axis_length = scaling_factor * np.sqrt(eigenvalues[minor_index])
@@ -269,9 +262,9 @@ class Hough:
         major_eigenvector = eigenvectors[:, major_index]
         angle = np.degrees(np.arctan2(major_eigenvector[1], major_eigenvector[0]))
 
-        # --- FIX: Use convex hull to refine ellipse fitting ---
+        # Use convex hull to refine ellipse fitting (find the smallest convex shape enclosing all points)
         hull = ConvexHull(points)
-        hull_points = points[hull.vertices]  # Get outer boundary points
+        hull_points = points[hull.vertices] 
 
         # Compute max distances from centroid to outer points for better approximation
         distances = np.linalg.norm(hull_points - centroid, axis=1)
@@ -279,7 +272,7 @@ class Hough:
 
         # Adjust ellipse size based on max distance
         major_axis_length = max(major_axis_length, 2 * max_distance)
-        minor_axis_length = max(minor_axis_length, 2 * max_distance * 0.6)  # Keep proportion
+        minor_axis_length = max(minor_axis_length, 2 * max_distance * 0.6)
 
         return (x_c, y_c), (major_axis_length, minor_axis_length), angle
 
@@ -305,26 +298,18 @@ class Hough:
             print("Error: Input image is grayscale, expected a colored image.")
             return None
 
-        # Copy the original image and convert to RGB
         colored_image = image.copy()
         correct_color = cv2.cvtColor(colored_image, cv2.COLOR_BGR2RGB)
 
-        # Convert to grayscale for edge detection
         gray = cv2.cvtColor(colored_image, cv2.COLOR_BGR2GRAY)
         # blurred = cv2.GaussianBlur(gray, (5, 5), 1.5)
         blurred = FilterProcessor.gaussian_filter(gray, 5, 1.5)
         edges = cv2.Canny(blurred, low_threshold, high_threshold)
 
-        # edges = EdgeDetector.apply_edge_detection(blurred, method='canny', low_thresh_ratio=low_threshold/255, high_thresh_ratio=high_threshold/255)
-        print(edges)
-        print(type(edges))
-
-
-        # Find contours
         contours, _ = cv2.findContours(edges, cv2.RETR_LIST, cv2.CHAIN_APPROX_SIMPLE)
 
         for contour in contours:
-            if len(contour) >= 5:  # Ellipse fitting requires at least 5 points
+            if len(contour) >= 5:  
                 contour_points = contour[:, 0, :]  # Extract x, y coordinates
 
                 ellipse = Hough.fit_ellipse_manual(contour_points)
